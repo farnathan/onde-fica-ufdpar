@@ -1,5 +1,5 @@
 // Guarda a página e a planta para funcionar com sinal fraco no campus
-const C="onde-fica-v8",F=["./","index.html","planta-campus.webp","icone.svg","icone-180.png","manifest.webmanifest"];
+const C="onde-fica-v10",F=["./","index.html","planta-campus.webp","icone.svg","icone-180.png","manifest.webmanifest"];
 self.addEventListener("install",e=>e.waitUntil(caches.open(C).then(c=>c.addAll(F)).then(()=>self.skipWaiting())));
 self.addEventListener("activate",e=>e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))).then(()=>self.clients.claim())));
 self.addEventListener("fetch",e=>{if(e.request.method!=="GET")return;

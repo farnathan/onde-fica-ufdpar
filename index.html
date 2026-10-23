@@ -37,7 +37,7 @@
   --food:#8E4A98; --park:#1D8BD3; --route:#0B5FA5;
   --grass:#A7C985; --grass2:#93BB6E; --paving:#ECE8DF; --walk:#F7F5EF; --roof:#F6F8FA; --roof-line:#AEB8C2; --roof-shade:#D9DFE5;
   --asphalt:#5D646D; --asphalt-ink:#FFFFFF; --field:#5E9E3B; --tile:#D98A6A; --water:#9CC6E8;
-  --paper:#698927;
+  --paper:var(--bg);
   --display:"Overpass","Arial Narrow",Arial,sans-serif;
   --body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
 }
@@ -166,6 +166,42 @@ label.q{font-family:var(--display);font-weight:800;font-size:.85rem;letter-spaci
 .tagm{cursor:pointer;transition:opacity .2s}
 .tagm.sel rect{fill:var(--ufd);stroke:var(--hi);stroke-width:2}
 .ico rect{stroke:#fff;stroke-width:1.2}
+.pin .hit{fill:transparent}
+.pin .badge,.pin .bt{display:none}
+.tiny .pin .drop,.tiny .pin .dt{display:none}
+.tiny .pin .hit{r:15px;cy:-11px}
+.tiny .pin .badge{display:inline;fill:var(--pin);stroke:#fff;stroke-width:1.5}
+.tiny .pin .bt{display:inline;font:900 11px var(--display);fill:#fff}
+.tiny .pin.sel .badge{fill:var(--ufd);stroke:var(--hi);stroke-width:2.5}
+.tiny .pin.dim .badge{fill:#A3ABB4}
+.far .statics{display:none}
+.ico2{pointer-events:none}
+.blk .b{vector-effect:non-scaling-stroke}
+.tip{position:absolute;z-index:4;pointer-events:none;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:.85rem;line-height:1.3;box-shadow:0 4px 14px rgb(0 0 0 / .18);max-width:260px;display:flex;flex-direction:column}
+.tip span{color:var(--muted);font-size:.8rem}
+.layers{position:absolute;z-index:4;top:12px;right:calc(max(12px,env(safe-area-inset-right,0px)) + 52px);background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:10px 12px;box-shadow:0 6px 20px rgb(0 0 0 / .2);display:flex;flex-direction:column;gap:6px;min-width:200px}
+.layers p{margin:0 0 2px;font:800 .75rem var(--display);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.layers label{display:flex;align-items:center;gap:8px;font-size:.92rem;cursor:pointer}
+.layers label i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.layers input{width:18px;height:18px;accent-color:var(--ufd)}
+.scale{position:absolute;z-index:3;top:12px;left:max(12px,env(safe-area-inset-left,0px));display:flex;align-items:center;gap:8px;background:color-mix(in srgb,var(--surface) 88%,transparent);border:1px solid var(--line);border-radius:10px;padding:5px 9px 5px 6px;pointer-events:none}
+.north circle{fill:var(--surface);stroke:var(--line)}.north .n1{fill:var(--pin)}.north .n2{fill:var(--muted)}.north text{font:800 6px var(--display);fill:var(--ink)}
+.scale .sbar{height:6px;border:2px solid var(--ink);border-top:0;width:60px;background:transparent}
+.layers[hidden],.tip[hidden]{display:none!important}
+.scale span{font:700 .72rem var(--body);color:var(--ink);font-variant-numeric:tabular-nums}
+.home section{margin-top:16px}
+.home h3{font:800 .78rem var(--display);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 4px}
+.home ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.home li>button{width:100%;text-align:left;font:inherit;color:var(--ink);background:transparent;border:1px solid transparent;border-radius:10px;padding:6px 8px;display:grid;grid-template-columns:auto 1fr;gap:0 12px;align-items:center;cursor:pointer}
+.home li>button:hover,.home li>button:focus-visible{background:var(--bg);border-color:var(--line);outline:none}
+.home .pinb{width:32px;height:32px}
+.home .pinb span{font-size:.82rem}
+.home .st{display:inline-flex;align-items:center;gap:6px;font-weight:700;color:var(--ink)}
+.home .st i{width:8px;height:8px;border-radius:50%;background:var(--muted)}.home .st.on i{background:#1F9D55}.home .st.mid i{background:var(--tag)}.home .st.off i{background:var(--pin)}
+.courses{display:flex;flex-wrap:wrap;gap:6px}
+.allbtn{margin-top:16px;width:100%;font:inherit;font-weight:700;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;cursor:pointer}
+.allbtn:focus-visible{outline:2px solid var(--ufd)}
+@media (max-width:860px){.scale{top:10px}.layers{top:10px}}
 .road-t{font:800 22px var(--display);letter-spacing:.06em;fill:var(--asphalt-ink)}
 .lm{font:700 13px var(--body);fill:#1B2A1E}
 #route{fill:none;stroke:var(--route);stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1 10}
@@ -201,9 +237,13 @@ label.q{font-family:var(--display);font-weight:800;font-size:.85rem;letter-spaci
         <button type="button" id="zin" aria-label="Aproximar">+</button>
         <button type="button" id="zout" aria-label="Afastar">−</button>
         <button type="button" id="zfit" aria-label="Ver o campus inteiro">⤢</button>
+        <button type="button" id="lyrbtn" aria-label="Camadas do mapa" aria-expanded="false" aria-controls="layers"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2 1.5 6.5 10 11l8.5-4.5z" fill="currentColor"/><path d="M2.5 10 10 14l7.5-4M2.5 13.5 10 17.5l7.5-4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></button>
         <button type="button" id="gps" aria-label="Mostrar onde estou"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="4" fill="currentColor"/><circle cx="10" cy="10" r="7.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M10 0v3M10 17v3M0 10h3M17 10h3" stroke="currentColor" stroke-width="1.8"/></svg></button>
       </div>
       <div id="toast" role="status" hidden></div>
+      <div id="layers" class="layers" role="group" aria-label="Camadas do mapa" hidden></div>
+      <div id="tip" class="tip" hidden></div>
+      <div class="scale" aria-hidden="true"><svg class="north" width="26" height="26" viewBox="0 0 26 26"><circle cx="13" cy="13" r="12" /><path d="M13 4l4 10h-8z" class="n1"/><path d="M13 22l-4-8h8z" class="n2"/><text x="13" y="25.5" text-anchor="middle">N</text></svg><div><div id="scalebar" class="sbar"></div><span id="scaletxt">50 m</span></div></div>
     </div>
     <aside class="sheet" id="sheet" aria-label="Busca e informações">
       <button class="handle" id="handle" type="button" aria-label="Expandir ou recolher o painel"></button>
@@ -215,7 +255,7 @@ label.q{font-family:var(--display);font-weight:800;font-size:.85rem;letter-spaci
         </div>
         <p class="hint">O número da sala no seu horário já diz o bloco e o andar.</p>
         <section id="detail" hidden aria-live="polite"></section>
-        <div class="chips" id="chips" aria-label="Buscas rápidas"></div>
+        <div id="home" class="home"></div>
         <div class="filters" id="filters" aria-label="Filtrar por tipo"></div>
         <p id="count" aria-live="polite"></p>
         <ul id="results"></ul>
@@ -247,7 +287,7 @@ const B=[
  ["14","adm","PREUNI e Auditório Central",[102,102],[[0,null,["PREUNI – Prefeitura Universitária","Auditório Central"],"preuni prefeitura manutencao auditorio central evento palestra"]],[1182,845,165,84]],
  ["15","apoio","Cantina, xérox e vigilância",[103,106],[[0,null,["Cantina","Xérox","Sala de vigilância"],"cantina xerox copia impressao lanche comer vigilancia seguranca achados perdidos"]],[1241,792,85,50]],
  ["16","adm","Coordenações de cursos",[107,122],[[0,null,["Coordenações dos cursos de graduação","Coordenação do PPGPSI","Coordenação do PPGSF","Núcleo de pesquisa"],"coordenacao coordenador curso graduacao ppgpsi ppgsf nucleo pesquisa"]],[1282,672,69,117]],
- ["17","adm","Gabinetes dos docentes",[123,137],[[0,null,["Gabinetes dos docentes"],"professor docente gabinete sala orientacao"]],[1182,672,53,117]],
+ ["17","adm","Gabinetes dos docentes",[123,137],[[0,null,["Gabinetes dos docentes"],"professor docente gabinete sala orientacao"]],[1181,670,68,118]],
  ["18","est","PRAE",[138,148],[[0,null,["PRAE – Pró-Reitoria de Assuntos Estudantis","Serviço Social, Pedagógico, de Psicologia, Médico e Odontológico","NIA – Núcleo de Inclusão e Acessibilidade","Carteirinha do RU e CADUNI"],"prae assistencia estudantil auxilio bolsa moradia alimentacao residencia creche bae bincs caduni carteirinha servico social pedagogico psicologia psicologo medico consulta dentista odontologico saude nia inclusao acessibilidade deficiencia"]],[1101,832,28,88]],
  ["19","aula","Clínicas e salas de aula",[149,203],[[0,[149,190],["Clínica de Fisioterapia","Clínica de Psicologia"],"clinica clinicas escola fisioterapia psicologia atendimento terapia"],[1,[191,203],["Laboratórios","Salas de aula: Psicologia, Fisioterapia e Biologia"],"laboratorio aula psicologia fisioterapia biologia"]],[1185,569,267,69]],
  ["20","aula","Laboratórios, Herbário e salas de aula",[204,241],[[0,[204,230],["Laboratórios"],"laboratorio lab"],[1,[231,241],["Laboratórios","Herbário","Salas de aula: Biomedicina, Biologia e Turismo"],"laboratorio herbario biomedicina biologia turismo aula"]],[1185,488,267,69]],
@@ -293,6 +333,10 @@ function ruStatus(){
 // ponta de cada pino oficial e centro de cada etiqueta oficial (unidades da planta)
 const PIN={23:[1260,315],22:[1290,374],24:[1517,316],25:[1557,397],21:[1290,452],26:[1557,554],20:[1292,551],19:[1293,632],17:[1217,773],16:[1316,749],15:[1266,815],14:[1215,890],18:[1116,907],13:[1211,967],12:[1309,967],11:[1211,1070],10:[1310,1072],9:[1471,768],8:[1566,776],7:[1514,837],6:[1466,918],5:[1566,909],4:[1515,997],3:[1468,1065],2:[1566,1065],1:[1477,1151]};
 const TAG={RU:[1556,630],BC:[1385,807],QE:[1593,451],EA:[952,704]};
+// contorno real do telhado (recortado da ilustração); os demais usam o retângulo
+const OUTLINE={"1":[[1617.7,1140.3],[1617.7,1185.7],[1452.0,1186.0],[1451.0,1106.0],[1541.3,1106.0],[1591.0,1120.7]],"14":[[1360.7,831.0],[1360.7,857.0],[1347.0,929.7],[1180.7,929.7],[1173.7,894.3],[1173.7,877.0],[1177.7,854.0],[1180.0,852.3],[1264.7,831.0]],"19":[[1451.7,570.7],[1452.3,638.3],[1184.0,639.0],[1183.7,571.3]],"20":[[1452.3,488.7],[1452.7,555.7],[1184.0,556.7],[1184.0,489.0]],"21":[[1459.0,394.7],[1459.0,437.3],[1444.7,464.7],[1198.0,464.7],[1183.7,437.0],[1183.7,395.7]],"22":[[1191.0,347.7],[1290.0,340.7],[1461.7,347.0],[1461.7,382.3],[1191.0,382.7]],"23":[[1476.7,330.0],[1290.3,334.0],[1182.7,330.3],[1179.0,279.0],[1183.0,269.7],[1471.0,261.7],[1476.7,267.0]],"24":[[1575.7,283.0],[1575.7,324.3],[1530.0,331.7],[1493.0,331.7],[1493.0,271.0]],"RU":[[1648.0,585.3],[1648.3,671.0],[1482.0,671.3],[1481.7,585.3]],"BC":[[1469.7,870.7],[1327.0,870.7],[1327.0,843.7],[1341.0,771.0],[1470.3,764.7]],"EA":[[845.3,703.0],[845.3,732.0],[983.3,732.7],[983.3,748.3],[973.3,754.3],[963.3,754.3],[962.7,744.0],[905.0,744.0],[904.7,792.7],[1017.7,792.7],[1024.3,774.7],[1006.3,749.3],[997.7,748.7],[997.7,732.7],[1038.7,731.7],[1038.7,703.0],[1010.7,703.0],[1002.0,691.3],[902.3,690.7],[892.0,703.0]]};
+// ícones da ilustração oficial, agora como camadas: [tipo, x, y da ponta]
+const ICONS=[["moto",1164.2,302.7],["park",1129.7,478.3],["park",1129.6,744.3],["park",1032.9,970.7],["moto",1573.5,973.3],["park",1389.1,1017.0],["bike",1416.6,1051.7],["park",1135.4,1121.0],["food",1401.1,312.0],["food",1289.0,829.3],["food",1543.6,829.3]];
 const CORE={x:1000,y:240,w:690,h:980}, ALL={x:830,y:200,w:960,h:1090};
 
 const norm=s=>s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/-/g,"");
@@ -309,17 +353,17 @@ let sel=null;
 // ---------- planta vetorial ----------
 const svg=$("map"),NS="http://www.w3.org/2000/svg";
 const mk=(t,a,p=svg)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e};
-const gBase=mk("g",{}),gBld=mk("g",{}),gRoute=mk("g",{}),gIco=mk("g",{}),gPins=mk("g",{});
+const gBase=mk("g",{}),gBld=mk("g",{}),gRoute=mk("g",{}),gIco=mk("g",{}),gStatic=mk("g",{class:"statics"}),gPins=mk("g",{});
 // base: ilustração oficial "Localize-se!" vetorizada, sem os pinos e etiquetas (redesenhados abaixo, clicáveis)
 mk("rect",{x:600,y:60,width:1400,height:1400,fill:"var(--paper)"},gBase);
 mk("image",{href:"planta-campus.webp",x:760,y:160,width:1100,height:1140,preserveAspectRatio:"none"},gBase);
-// cobre a emenda entre a planta e o fundo
-mk("rect",{x:760,y:160,width:1100,height:1140,fill:"none",stroke:"var(--paper)","stroke-width":5},gBase);
 const els={};
 B.forEach(b=>{
   const [x,y,w,h]=b[5];
   const g=mk("g",{class:"blk",tabindex:0,role:"button","aria-label":`${label(b)}: ${b[2]}`},gBld);
-  mk("rect",{class:"b",x:x-2,y:y-2,width:w+4,height:h+4,rx:3},g);
+  g.dataset.id=b[0];
+  if(OUTLINE[b[0]])mk("polygon",{class:"b",points:OUTLINE[b[0]].map(p=>p.join(",")).join(" ")},g);
+  else mk("rect",{class:"b",x:x-2,y:y-2,width:w+4,height:h+4,rx:3},g);
   els[b[0]]={g};
   g.addEventListener("click",()=>tap(()=>pick(b[0])));
   g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();pick(b[0])}});
@@ -336,8 +380,10 @@ B.forEach(b=>{
   if(isBlock(b)){
     g=mk("g",{class:"pin","aria-hidden":"true"},gPins);
     const inner=mk("g",{},g);
+    mk("circle",{class:"hit",cx:0,cy:-26,r:26},inner);
+    mk("circle",{class:"badge",cx:0,cy:-11,r:11},inner);mk("text",{class:"bt",x:0,y:-7,"text-anchor":"middle"},inner).textContent=b[0];
     mk("path",{class:"drop",d:"M0 0 C-4 -9 -15 -18 -15 -30 A15 15 0 1 1 15 -30 C15 -18 4 -9 0 0 Z"},inner);
-    const t=mk("text",{x:0,y:-25.5,"text-anchor":"middle"},inner);t.textContent=b[0];
+    const t=mk("text",{class:"dt",x:0,y:-25.5,"text-anchor":"middle"},inner);t.textContent=b[0];
     const P=PIN[b[0]]||[cx,cy];pinEls.push({g,inner,x:P[0],y:P[1]});
   }else{
     g=mk("g",{class:"tagm","aria-hidden":"true"},gPins);
@@ -348,14 +394,26 @@ B.forEach(b=>{
     const t=mk("text",{x:0,y:3,"text-anchor":"middle"},inner);t.textContent=b[6];
     const T=TAG[b[0]]||[cx,cy];pinEls.push({g,inner,x:T[0],y:T[1]});
   }
+  g.dataset.id=b[0];
   g.addEventListener("click",()=>tap(()=>pick(b[0])));
   els[b[0]].pin=g;
 });
 [["Clínicas",1374,606],["Convivência",1442,273],["Auditório Central",1316,880],["PREUNI",1167,864],["PRAE",1091,835],["Núcleo de Pesquisa e Pós-Graduação",1572,1131]].forEach(([t,x,y])=>{
-  const g=mk("g",{class:"tagm","aria-hidden":"true",style:"pointer-events:none"},gPins);const inner=mk("g",{},g);
+  const g=mk("g",{class:"tagm static","aria-hidden":"true",style:"pointer-events:none"},gStatic);const inner=mk("g",{},g);
   const tw=t.length*7.4+16;mk("rect",{x:-tw/2,y:-13,width:tw,height:22,rx:5},inner);
   mk("text",{x:0,y:3,"text-anchor":"middle"},inner).textContent=t;pinEls.push({g,inner,x,y,static:true});
 });
+// ---------- G. ícones como camadas ----------
+const LAYERS={park:{n:"Estacionamentos",c:"var(--park)"},moto:{n:"Motos e bicicletas",c:"var(--park)"},bike:{n:"Motos e bicicletas",c:"var(--park)"},food:{n:"Alimentação",c:"var(--food)"}};
+const GLYPH={
+ park:'<path d="M-8 -17v-3.6l2-1.2 2.1-4.2h7.8l2.1 4.2 2 1.2v3.6z" fill="#fff"/><path d="M-3.2 -21.6l1.3-2.7h3.8l1.3 2.7z" fill="var(--park)"/><circle cx="-4.6" cy="-16.8" r="2.3" fill="var(--park)" stroke="#fff" stroke-width="1.3"/><circle cx="4.6" cy="-16.8" r="2.3" fill="var(--park)" stroke="#fff" stroke-width="1.3"/>',
+ moto:'<circle cx="-5" cy="-16.5" r="3" fill="none" stroke="#fff" stroke-width="1.6"/><circle cx="5.5" cy="-16.5" r="3" fill="none" stroke="#fff" stroke-width="1.6"/><path d="M-5 -16.5l3.5-5h5l2 5M0.5-21.5l1.5-2.5h3" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>',
+ bike:'<circle cx="-5" cy="-16.5" r="3.4" fill="none" stroke="#fff" stroke-width="1.5"/><circle cx="5" cy="-16.5" r="3.4" fill="none" stroke="#fff" stroke-width="1.5"/><path d="M-5 -16.5l3-6h5.5l1.5 6M-2 -22.5l3 6h2.5M-3.5-24.5h3" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
+ food:'<path d="M-5.5 -26v5a2 2 0 0 0 4 0v-5M-3.5 -19v6.5M3.5 -26c-2.4 1.5-2.4 6 0 7v6.5" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>'};
+const layerG={park:mk("g",{class:"lyr"},gIco),moto:mk("g",{class:"lyr"},gIco),food:mk("g",{class:"lyr"},gIco)};layerG.bike=layerG.moto;
+ICONS.forEach(([t,x,y])=>{const g=mk("g",{class:"ico2","aria-hidden":"true"},layerG[t]);const inner=mk("g",{},g);
+  inner.innerHTML=`<path d="M-11 -31h22a3 3 0 0 1 3 3v15a3 3 0 0 1-3 3h-7l-4 6-4-6h-7a3 3 0 0 1-3-3v-15a3 3 0 0 1 3-3z" fill="${LAYERS[t].c}" stroke="#fff" stroke-width="1.4"/>`+GLYPH[t];
+  pinEls.push({g,inner,x,y,icon:true})});
 const halo=mk("polyline",{id:"routeHalo","vector-effect":"non-scaling-stroke"},gRoute),route=mk("polyline",{id:"route","vector-effect":"non-scaling-stroke"},gRoute);
 
 // ---------- georreferência (planta -> GPS), ajustada pelos contornos do OpenStreetMap; erro médio ~3 m ----------
@@ -397,6 +455,53 @@ function showRoute(b){
   route.setAttribute("points",s);halo.setAttribute("points",s);return p;
 }
 
+// ---------- escala ----------
+function drawScale(ppu){const mpp=GEO.mpu/ppu,opts=[5,10,20,25,50,100,200,250,500];let m=opts[0];
+  for(const o of opts){if(o/mpp<=110)m=o}const px=Math.round(m/mpp);
+  const el=$("scalebar");if(!el)return;el.style.width=px+"px";$("scaletxt").textContent=m+" m"}
+// ---------- dica ao passar o mouse ----------
+(()=>{const tip=$("tip");
+  svg.addEventListener("pointermove",e=>{if(e.pointerType!=="mouse"||ptrs.size){tip.hidden=true;return}
+    const t=e.target.closest&&e.target.closest("[data-id]");if(!t){tip.hidden=true;return}
+    const b=B.find(x=>x[0]===t.dataset.id);if(!b){tip.hidden=true;return}
+    tip.innerHTML=`<b>${esc(label(b))}</b>${isBlock(b)?`<span>${esc(b[2])}</span>`:""}`;tip.hidden=false;
+    const r=mapbox.getBoundingClientRect();let x=e.clientX-r.left+14,y=e.clientY-r.top+14;
+    if(x+tip.offsetWidth>r.width-8)x=e.clientX-r.left-tip.offsetWidth-10;if(y+tip.offsetHeight>r.height-8)y=e.clientY-r.top-tip.offsetHeight-10;
+    tip.style.left=x+"px";tip.style.top=y+"px"});
+  svg.addEventListener("pointerleave",()=>tip.hidden=true)})();
+// ---------- camadas liga/desliga ----------
+const LYR_DEF={park:true,moto:true,food:true,tags:true};let LYR={...LYR_DEF};
+try{Object.assign(LYR,JSON.parse(localStorage.getItem("ondefica.camadas")||"{}"))}catch(_){}
+function applyLayers(){layerG.park.style.display=LYR.park?"":"none";layerG.moto.style.display=LYR.moto?"":"none";layerG.food.style.display=LYR.food?"":"none";gStatic.style.display=LYR.tags?"":"none";
+  document.querySelectorAll("#layers input").forEach(i=>i.checked=!!LYR[i.value]);try{localStorage.setItem("ondefica.camadas",JSON.stringify(LYR))}catch(_){}}
+(()=>{const box=$("layers"),btn=$("lyrbtn");
+  box.innerHTML=`<p>Mostrar no mapa</p>`+[["park","Estacionamentos","var(--park)"],["moto","Motos e bicicletas","var(--park)"],["food","Alimentação","var(--food)"],["tags","Nomes dos setores","var(--tag)"]]
+    .map(([k,n,c])=>`<label><input type="checkbox" id="lyr-${k}" value="${k}"><i style="background:${c}"></i>${n}</label>`).join("");
+  box.addEventListener("change",e=>{LYR[e.target.value]=e.target.checked;applyLayers()});
+  btn.onclick=()=>{box.hidden=!box.hidden;btn.setAttribute("aria-expanded",!box.hidden)};
+  document.addEventListener("pointerdown",e=>{if(!box.hidden&&!box.contains(e.target)&&!btn.contains(e.target)){box.hidden=true;btn.setAttribute("aria-expanded","false")}});
+  applyLayers()})();
+// ---------- tela inicial por necessidade ----------
+const GROUPS=[
+ {t:"Onde comer",items:[["RU",0,"Restaurante Universitário","Almoço e jantar"],["7",0,"Cantina","Bloco 7"],["15",0,"Cantina e xérox","Bloco 15"]]},
+ {t:"Atendimento ao estudante",items:[["18",0,"PRAE","Auxílios, CADUNI, carteirinha do RU"],["12",0,"PREG e SAE","Matrícula, calendário, diploma"],["16",0,"Coordenações dos cursos","Bloco 16"],["4",0,"Coordenações de Administração e Contábeis","Bloco 4"],["23",0,"DCE","Carteira estudantil (DNE)"],["13",0,"Centros acadêmicos","Bloco 13"]]},
+ {t:"Saúde e bem-estar",items:[["18",0,"Médico, dentista e psicologia","PRAE · Bloco 18"],["19",0,"Clínicas-escola","Fisioterapia e Psicologia · Bloco 19"],["24",0,"Fisioterapia Aquática","Bloco 24"],["QE",0,"Quadra de Esportes",""]]},
+ {t:"Estudar",items:[["BC",0,"Biblioteca Central","Cabines e salas em grupo"],["21",2,"Salas de estudo e PROTIC","Wi-Fi e senha do SIGAA · Bloco 21"],["23",0,"Espaço de convivência","Bloco 23"]]},
+ {t:"Serviços e eventos",items:[["15",0,"Xérox","Bloco 15"],["14",0,"Auditório Central e PREUNI","Bloco 14"],["21",4,"Centro de Convenções","Auditórios Leste e Oeste · Bloco 21"],["10",0,"Reitoria e Ouvidoria","Bloco 10"],["11",0,"Protocolo","Bloco 11"]]}
+];
+const COURSES=[["Administração","administracao"],["Biologia","biologia"],["Biomedicina","biomedicina"],["Contábeis","contabeis"],["Economia","economia"],["Eng. de Pesca","pesca"],["Fisioterapia","fisioterapia"],["Matemática","matematica"],["Medicina","medicina"],["Pedagogia","pedagogia"],["Psicologia","psicologia"],["Turismo","turismo"]];
+let showAll=false;
+function renderHome(){const h=$("home");
+  const status=id=>{if(id!=="RU")return"";const[k,t]=ruStatus();return`<span class="st ${k}"><i></i>${t}</span>`};
+  h.innerHTML=GROUPS.map(g=>`<section><h3>${g.t}</h3><ul>${g.items.map(([id,fl,n,sub])=>{const b=B.find(x=>x[0]===id);
+     return`<li><button type="button" data-id="${id}" data-fl="${fl}"><span class="pinb${isBlock(b)?"":" tagb"}"><span>${esc(id)}</span></span><span class="r-title">${esc(n)}</span><span class="r-meta">${status(id)||esc(sub)}</span></button></li>`}).join("")}</ul></section>`).join("")
+   +`<section><h3>Salas de aula por curso</h3><div class="courses">${COURSES.map(([n,q])=>`<button type="button" class="chip" data-q="${q}">${n}</button>`).join("")}</div></section>`
+   +`<button type="button" class="allbtn" id="allbtn">Ver todos os lugares (${entries.length})</button>`;
+  h.querySelectorAll("li>button").forEach(bt=>bt.onclick=()=>pick(bt.dataset.id,+bt.dataset.fl));
+  h.querySelectorAll(".courses .chip").forEach(c=>c.onclick=()=>{$("q").value=c.dataset.q;sel=null;track("curso/"+c.dataset.q,"Curso: "+c.textContent);render(true)});
+  $("allbtn").onclick=()=>{showAll=true;render(false,false)};
+}
+
 // ---------- zoom e arrasto ----------
 let vb={...CORE};
 const mapbox=$("mapbox"),sheet=$("sheet");
@@ -404,8 +509,13 @@ const mobile=()=>matchMedia("(max-width:860px)").matches;
 const occluded=()=>{if(!mobile())return 0;const H=mapbox.clientHeight,f=SH[sheet.dataset.state];return Math.min(f?f*H:sheet.getBoundingClientRect().height,H*.92)};
 function applyVB(){
   svg.setAttribute("viewBox",`${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
-  const cw=Math.max(mapbox.clientWidth,1),s=Math.min(1.25,60*vb.w/(45*cw));
-  pinEls.forEach(p=>p.g.setAttribute("transform",`translate(${p.x} ${p.y}) scale(${s})`));
+  const cw=Math.max(mapbox.clientWidth,1),ppu=cw/vb.w;
+  const tiny=ppu<0.62,far=ppu<0.9;svg.classList.toggle("tiny",tiny);svg.classList.toggle("far",far);
+  // altura do pino na tela: 30 px afastado → 44 px aproximado; no modo "bolinha", 22 px de diâmetro
+  const hpx=Math.max(30,Math.min(44,30+14*(ppu-0.6)/1.6));
+  const sPin=tiny?1/ppu:hpx/(45*ppu),sTag=Math.max(.75,Math.min(1.15,(18+6*(ppu-0.6)/1.6)/(22*ppu)*ppu))/ppu,sIco=Math.max(24,Math.min(34,24+10*(ppu-0.6)/1.6))/(27*ppu);
+  pinEls.forEach(p=>p.g.setAttribute("transform",`translate(${p.x} ${p.y}) scale(${p.icon?sIco:(p.inner&&p.g.classList.contains("pin")?sPin:sTag)})`));
+  drawScale(ppu);
 }
 function frame(r,pad=40){
   const cw=mapbox.clientWidth||1,ch=mapbox.clientHeight||1,occ=occluded(),vh=Math.max(ch-occ,ch*.3);
@@ -479,10 +589,7 @@ setSheet("half");
 })();
 $("q").addEventListener("focus",()=>{if(mobile())setSheet("full")});
 
-// ---------- chips e filtros ----------
-["405","RU","Biblioteca","Médico","Carteirinha","Xérox","DCE","Wi-Fi"].forEach(s=>{
-  const c=document.createElement("button");c.className="chip";c.type="button";c.textContent=s;
-  c.onclick=()=>{$("q").value=s;sel=null;render(true)};$("chips").appendChild(c)});
+// ---------- filtros ----------
 Object.entries(CAT).forEach(([k,v])=>{const b=document.createElement("button");b.type="button";b.setAttribute("aria-pressed","true");b.textContent=v;
   b.onclick=()=>{active.has(k)?active.delete(k):active.add(k);b.setAttribute("aria-pressed",active.has(k));render()};$("filters").appendChild(b)});
 
@@ -548,6 +655,9 @@ function pick(id,floor=null){track("lugar/"+String(id).toLowerCase(),"Lugar: "+i
 function render(move,auto=true){
   const res=search(),q=$("q").value.trim(),n=(q.match(/\d+/)||[])[0];
   if(auto&&!sel&&q&&res.length)sel={b:res[0].b[0],floor:res[0].floor};
+  if(q)showAll=false;$("tip").hidden=true;
+  const home=!q&&!showAll;$("home").hidden=!home;$("results").hidden=home;$("count").hidden=home;$("filters").hidden=!q;
+  if(home)renderHome();
   // lista
   const ul=$("results");ul.innerHTML="";
   $("count").textContent=q?`${res.length} ${res.length===1?"lugar encontrado":"lugares encontrados"} para “${q}”`:`Todos os lugares (${res.length})`;

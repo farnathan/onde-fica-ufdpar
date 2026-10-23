@@ -5,6 +5,31 @@ A versão mais recente fica no topo.
 
 ---
 
+## Versão 1.5 · 23/10/2026
+
+**Mapa mais limpo**
+- Com o zoom afastado, os blocos viram bolinhas numeradas e os nomes dos setores (Clínicas, PREUNI, Auditório Central…) só aparecem ao aproximar.
+- Pinos com tamanho constante na tela e área de toque maior no celular.
+- No computador, passar o mouse sobre um prédio mostra o nome do bloco.
+
+**Prédios com contorno real**
+- O destaque amarelo do prédio escolhido segue o formato real do telhado em 11 prédios (Blocos 1, 14, 19 a 24, RU, Biblioteca e Escola de Aplicação).
+- Contorno do Bloco 17 corrigido.
+
+**Camadas**
+- Novo botão de camadas: liga e desliga estacionamentos, motos e bicicletas, alimentação e nomes dos setores. A escolha fica salva no celular.
+
+**Escala e norte**
+- Barra de escala em metros, que muda com o zoom, e indicador de norte.
+
+**Tela inicial por necessidade**
+- Em vez da lista de 41 lugares, a tela inicial agrupa: Onde comer, Atendimento ao estudante, Saúde e bem-estar, Estudar, Serviços e eventos.
+- Atalhos de "Salas de aula por curso" para os 12 cursos.
+- O RU mostra na própria lista se está servindo, aberto ou fechado.
+- A lista completa continua em "Ver todos os lugares".
+
+---
+
 ## Versão 1.4 · 23/10/2026
 
 **Busca mais esperta**
