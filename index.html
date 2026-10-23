@@ -37,7 +37,7 @@
   --food:#8E4A98; --park:#1D8BD3; --route:#0B5FA5;
   --grass:#A7C985; --grass2:#93BB6E; --paving:#ECE8DF; --walk:#F7F5EF; --roof:#F6F8FA; --roof-line:#AEB8C2; --roof-shade:#D9DFE5;
   --asphalt:#5D646D; --asphalt-ink:#FFFFFF; --field:#5E9E3B; --tile:#D98A6A; --water:#9CC6E8;
-  --paper:var(--bg);
+  --paper:#FFFFFF;
   --display:"Overpass","Arial Narrow",Arial,sans-serif;
   --body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
 }
@@ -356,7 +356,7 @@ const mk=(t,a,p=svg)=>{const e=document.createElementNS(NS,t);for(const k in a)e
 const gBase=mk("g",{}),gBld=mk("g",{}),gRoute=mk("g",{}),gIco=mk("g",{}),gStatic=mk("g",{class:"statics"}),gPins=mk("g",{});
 // base: ilustração oficial "Localize-se!" vetorizada, sem os pinos e etiquetas (redesenhados abaixo, clicáveis)
 mk("rect",{x:600,y:60,width:1400,height:1400,fill:"var(--paper)"},gBase);
-mk("image",{href:"planta-campus.webp",x:760,y:160,width:1100,height:1140,preserveAspectRatio:"none"},gBase);
+mk("image",{href:"planta-campus.webp?v=1.5.1",x:760,y:160,width:1100,height:1140,preserveAspectRatio:"none"},gBase);
 const els={};
 B.forEach(b=>{
   const [x,y,w,h]=b[5];
