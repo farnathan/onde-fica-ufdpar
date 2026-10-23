@@ -37,7 +37,7 @@
   --food:#8E4A98; --park:#1D8BD3; --route:#0B5FA5;
   --grass:#A7C985; --grass2:#93BB6E; --paving:#ECE8DF; --walk:#F7F5EF; --roof:#F6F8FA; --roof-line:#AEB8C2; --roof-shade:#D9DFE5;
   --asphalt:#5D646D; --asphalt-ink:#FFFFFF; --field:#5E9E3B; --tile:#D98A6A; --water:#9CC6E8;
-  --paper:#FFFFFF;
+  --paper:#698927;
   --display:"Overpass","Arial Narrow",Arial,sans-serif;
   --body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
 }
@@ -130,6 +130,16 @@ label.q{font-family:var(--display);font-weight:800;font-size:.85rem;letter-spaci
 .lvl ul{margin:2px 0 0;padding-left:16px;font-size:.92rem}
 .ground{height:6px;margin-top:0;width:140px;background:repeating-linear-gradient(45deg,var(--muted) 0 2px,transparent 2px 6px);opacity:.6}
 .note{font-size:.78rem;color:var(--muted);margin:14px 0 0}
+.how{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.btn{font:inherit;font-size:.88rem;font-weight:700;text-decoration:none;color:var(--ufd-ink);background:var(--ufd);border:1px solid var(--ufd);border-radius:9px;padding:7px 12px;cursor:pointer}
+.btn+.btn{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn:focus-visible{outline:3px solid var(--hi);outline-offset:1px}
+#me .dot{fill:#1A73E8;stroke:#fff;stroke-width:3}
+#me .acc{fill:#1A73E8;fill-opacity:.15;stroke:#1A73E8;stroke-opacity:.4;stroke-width:1}
+@media (prefers-reduced-motion:no-preference){#me .dot{animation:pulse 2s ease-in-out infinite}}
+@keyframes pulse{50%{stroke-width:6}}
+#toast{position:absolute;left:50%;transform:translateX(-50%);top:12px;z-index:4;max-width:min(92%,420px);background:var(--ink);color:var(--surface);font-size:.88rem;padding:8px 14px;border-radius:10px;box-shadow:0 4px 14px rgb(0 0 0 / .25);text-align:center}
+#gps{display:grid;place-items:center}
 .info{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
 .info h3{font-family:var(--display);font-weight:800;font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:12px 0 4px}
 .info h3:first-of-type{margin-top:4px}
@@ -191,7 +201,9 @@ label.q{font-family:var(--display);font-weight:800;font-size:.85rem;letter-spaci
         <button type="button" id="zin" aria-label="Aproximar">+</button>
         <button type="button" id="zout" aria-label="Afastar">−</button>
         <button type="button" id="zfit" aria-label="Ver o campus inteiro">⤢</button>
+        <button type="button" id="gps" aria-label="Mostrar onde estou"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="4" fill="currentColor"/><circle cx="10" cy="10" r="7.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M10 0v3M10 17v3M0 10h3M17 10h3" stroke="currentColor" stroke-width="1.8"/></svg></button>
       </div>
+      <div id="toast" role="status" hidden></div>
     </div>
     <aside class="sheet" id="sheet" aria-label="Busca e informações">
       <button class="handle" id="handle" type="button" aria-label="Expandir ou recolher o painel"></button>
@@ -207,7 +219,7 @@ label.q{font-family:var(--display);font-weight:800;font-size:.85rem;letter-spaci
         <div class="filters" id="filters" aria-label="Filtrar por tipo"></div>
         <p id="count" aria-live="polite"></p>
         <ul id="results"></ul>
-        <p class="note">Dados do mapa oficial “Localize-se!” (Comunicação Institucional UFDPar). Caminhos aproximados, traçados pelos passeios do campus.</p>
+        <p class="note">Dados do mapa oficial “Localize-se!” (Comunicação Institucional UFDPar). Caminhos aproximados, traçados pelos passeios do campus. Coordenadas ajustadas com dados © colaboradores do <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>. Contamos visitas e buscas de forma anônima, sem cookies. <a href="https://github.com/farnathan/onde-fica-ufdpar/blob/main/NOVIDADES.md" target="_blank" rel="noopener">Novidades</a></p>
       </div>
     </aside>
   </main>
@@ -289,7 +301,7 @@ const label=b=>isBlock(b)?"Bloco "+b[0]:b[2];
 const rng=r=>r?(r[0]===r[1]?`sala ${r[0]}`:`salas ${r[0]}–${r[1]}`):"";
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const entries=[];
-B.forEach(b=>b[4].forEach(f=>entries.push({b,floor:f[0],range:f[1]||(b[4].length===1?b[3]:null),items:f[2],hay:norm([b[2],f[2].join(" "),f[3],isBlock(b)?"bloco "+b[0]:""].join(" "))})));
+B.forEach(b=>b[4].forEach(f=>entries.push({b,floor:f[0],range:f[1]||(b[4].length===1?b[3]:null),items:f[2],fhay:norm([f[2].join(" "),f[3]].join(" ")),hay:norm([b[2],f[2].join(" "),f[3],isBlock(b)?"bloco "+b[0]:""].join(" "))})));
 const $=id=>document.getElementById(id);
 const active=new Set(Object.keys(CAT));
 let sel=null;
@@ -300,7 +312,9 @@ const mk=(t,a,p=svg)=>{const e=document.createElementNS(NS,t);for(const k in a)e
 const gBase=mk("g",{}),gBld=mk("g",{}),gRoute=mk("g",{}),gIco=mk("g",{}),gPins=mk("g",{});
 // base: ilustração oficial "Localize-se!" vetorizada, sem os pinos e etiquetas (redesenhados abaixo, clicáveis)
 mk("rect",{x:600,y:60,width:1400,height:1400,fill:"var(--paper)"},gBase);
-mk("image",{href:"planta-campus.svg",x:760,y:160,width:1100,height:1140,preserveAspectRatio:"none"},gBase);
+mk("image",{href:"planta-campus.webp",x:760,y:160,width:1100,height:1140,preserveAspectRatio:"none"},gBase);
+// cobre a emenda entre a planta e o fundo
+mk("rect",{x:760,y:160,width:1100,height:1140,fill:"none",stroke:"var(--paper)","stroke-width":5},gBase);
 const els={};
 B.forEach(b=>{
   const [x,y,w,h]=b[5];
@@ -313,6 +327,7 @@ B.forEach(b=>{
 // entrada
 const st=mk("g",{class:"start"},gIco);mk("circle",{cx:ENTRY[0],cy:ENTRY[1],r:8},st);
 mk("text",{x:ENTRY[0]+14,y:ENTRY[1]-8,class:"lm"},st).textContent="Entrada principal";
+const meG=mk("g",{id:"me",style:"display:none"},gPins);const meAcc=mk("circle",{r:20,class:"acc"},meG);const meDot=mk("circle",{r:8,class:"dot"},meG);
 // pinos e etiquetas
 const pinEls=[];
 B.forEach(b=>{
@@ -343,33 +358,42 @@ B.forEach(b=>{
 });
 const halo=mk("polyline",{id:"routeHalo","vector-effect":"non-scaling-stroke"},gRoute),route=mk("polyline",{id:"route","vector-effect":"non-scaling-stroke"},gRoute);
 
+// ---------- georreferência (planta -> GPS), ajustada pelos contornos do OpenStreetMap; erro médio ~3 m ----------
+const GEO={M:[[0.29257, 0.004872], [-0.004951, 0.293132], [-321.572785, -73.189451]],lat0:-2.9068351,lon0:-41.755203};
+GEO.k=Math.cos(GEO.lat0*Math.PI/180)*111320;GEO.mpu=Math.hypot(GEO.M[0][0],GEO.M[0][1]);
+function planToLL(x,y){const[a,b,c]=GEO.M;const mx=a[0]*x+b[0]*y+c[0],my=a[1]*x+b[1]*y+c[1];return[GEO.lat0-my/111320,GEO.lon0+mx/GEO.k]}
+function llToPlan(lat,lon){const[a,b,c]=GEO.M;const mx=(lon-GEO.lon0)*GEO.k-c[0],my=(GEO.lat0-lat)*111320-c[1];const det=a[0]*b[1]-b[0]*a[1];return[(mx*b[1]-b[0]*my)/det,(a[0]*my-a[1]*mx)/det]}
+function nearestWalk(cx,cy){let best=null;
+  WALK.forEach((s,i)=>{const [x1,y1,x2,y2]=s;const px=Math.min(Math.max(cx,Math.min(x1,x2)),Math.max(x1,x2)),py=Math.min(Math.max(cy,Math.min(y1,y2)),Math.max(y1,y2));const d=Math.hypot(px-cx,py-cy);if(!best||d<best.d)best={d,p:[px,py],i}});return best}
+let me=null; // posição do GPS na planta, quando a pessoa está no campus
+
 // ---------- rota pelos passeios (Dijkstra) ----------
-function routeTo(rect){
+function routeTo(rect,start){
   const [rx,ry,rw,rh]=rect,cx=rx+rw/2,cy=ry+rh/2;
-  // ponto mais próximo nos passeios
-  let best=null;
-  WALK.forEach((s,i)=>{const [x1,y1,x2,y2]=s;const px=Math.min(Math.max(cx,Math.min(x1,x2)),Math.max(x1,x2)),py=Math.min(Math.max(cy,Math.min(y1,y2)),Math.max(y1,y2));const d=Math.hypot(px-cx,py-cy);if(!best||d<best.d)best={d,p:[px,py],i}});
+  const best=nearestWalk(cx,cy),from=start?nearestWalk(start[0],start[1]):null;
   const pts=WALK.map(()=>[]);
   WALK.forEach((s,i)=>{pts[i].push([s[0],s[1]],[s[2],s[3]])});
   for(let i=0;i<WALK.length;i++)for(let j=i+1;j<WALK.length;j++){
     const a=WALK[i],b=WALK[j];const av=a[0]===a[2],bv=b[0]===b[2];if(av===bv)continue;
     const V=av?a:b,H=av?b:a;const x=V[0],y=H[1];
     if(x>=Math.min(H[0],H[2])-.5&&x<=Math.max(H[0],H[2])+.5&&y>=Math.min(V[1],V[3])-.5&&y<=Math.max(V[1],V[3])+.5){pts[i].push([x,y]);pts[j].push([x,y])}}
-  pts[best.i].push(best.p);
+  pts[best.i].push(best.p);if(from)pts[from.i].push(from.p);
   const key=p=>p[0].toFixed(1)+","+p[1].toFixed(1),adj={};
   const link=(p,q)=>{const d=Math.hypot(p[0]-q[0],p[1]-q[1]);(adj[key(p)]=adj[key(p)]||[]).push([key(q),d,q]);(adj[key(q)]=adj[key(q)]||[]).push([key(p),d,p])};
   pts.forEach((list,i)=>{const s=WALK[i],v=s[0]===s[2];list.sort((p,q)=>v?p[1]-q[1]:p[0]-q[0]);for(let k=1;k<list.length;k++)link(list[k-1],list[k])});
-  const src=key(ENTRY),dst=key(best.p),dist={[src]:0},prev={},pos={[src]:ENTRY},todo=new Set([src]);
+  const S0=from?from.p:ENTRY;
+  const src=key(S0),dst=key(best.p),dist={[src]:0},prev={},pos={[src]:S0},todo=new Set([src]);
   while(todo.size){let u=null;todo.forEach(k=>{if(u===null||dist[k]<dist[u])u=k});todo.delete(u);if(u===dst)break;
     (adj[u]||[]).forEach(([v,d,p])=>{const nd=dist[u]+d;if(dist[v]===undefined||nd<dist[v]){dist[v]=nd;prev[v]=u;pos[v]=p;todo.add(v)}})}
   const path=[];let k=dst;while(k){path.unshift(pos[k]);k=prev[k]}
   const ex=Math.min(Math.max(best.p[0],rx),rx+rw),ey=Math.min(Math.max(best.p[1],ry),ry+rh);
   if(Math.hypot(ex-best.p[0],ey-best.p[1])>1)path.push([ex,ey]);
+  if(from&&from.d>1)path.unshift(start);
   return path;
 }
 function showRoute(b){
   if(!b){route.setAttribute("points","");halo.setAttribute("points","");return null}
-  const p=routeTo(b[5]),s=p.map(q=>q.join(",")).join(" ");
+  const p=routeTo(b[5],me&&[me.x,me.y]),s=p.map(q=>q.join(",")).join(" ");
   route.setAttribute("points",s);halo.setAttribute("points",s);return p;
 }
 
@@ -421,6 +445,24 @@ const center=()=>{const cw=mapbox.clientWidth,ch=mapbox.clientHeight,occ=occlude
 $("zin").onclick=()=>zoomAt(.7,...center());
 $("zout").onclick=()=>zoomAt(1.4,...center());
 $("zfit").onclick=()=>goTo(frame(ALL,10));
+// ---------- GPS ("onde estou") ----------
+let watch=null,toastT=0;
+function toast(t){const e=$("toast");e.textContent=t;e.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>e.hidden=true,5000)}
+function locate(){
+  if(!("geolocation" in navigator)){toast("Este navegador não informa a localização.");return}
+  toast("Procurando sua posição…");
+  const ok=pos=>{const{latitude:la,longitude:lo,accuracy:ac}=pos.coords,[x,y]=llToPlan(la,lo);
+    if(x<ALL.x-60||x>ALL.x+ALL.w+60||y<ALL.y-60||y>ALL.y+ALL.h+60){me=null;meG.style.display="none";
+      toast("Você está fora do campus. Use “Como chegar” para abrir a rota no Google Maps.");render(false);return}
+    const first=!me;me={x,y,acc:ac};meG.style.display="";meDot.setAttribute("cx",x);meDot.setAttribute("cy",y);
+    meAcc.setAttribute("cx",x);meAcc.setAttribute("cy",y);meAcc.setAttribute("r",Math.min(200,ac/GEO.mpu));
+    if(first){toast(`Posição encontrada (precisão de ${Math.round(ac)} m).`);if(!sel)goTo(frame({x:x-150,y:y-150,w:300,h:300},20))}
+    render(first&&!!sel,false)};
+  const err=e=>{toast(e&&e.code===1?"Permita o acesso à localização no navegador para ver onde você está.":"Não foi possível obter sua localização agora.")};
+  if(watch!==null)navigator.geolocation.clearWatch(watch);
+  try{watch=navigator.geolocation.watchPosition(ok,err,{enableHighAccuracy:true,maximumAge:5000,timeout:15000})}catch(_){err()}
+}
+$("gps").onclick=()=>{track("acao/onde-estou","Ação: onde estou");locate()};
 new ResizeObserver(()=>{const cw=mapbox.clientWidth,ch=mapbox.clientHeight;if(!cw||!ch)return;const cy=vb.y+vb.h/2;vb.h=vb.w*ch/cw;vb.y=cy-vb.h/2;applyVB()}).observe(mapbox);
 
 // ---------- painel inferior (celular) ----------
@@ -445,27 +487,71 @@ Object.entries(CAT).forEach(([k,v])=>{const b=document.createElement("button");b
   b.onclick=()=>{active.has(k)?active.delete(k):active.add(k);b.setAttribute("aria-pressed",active.has(k));render()};$("filters").appendChild(b)});
 
 // ---------- busca ----------
+// ---------- busca: sinônimos + tolerância a erros de digitação ----------
+const STOP=new Set(["sala","salas","bloco","de","do","da","dos","das","o","a","os","as","onde","fica","e","no","na","em","para","pra","um","uma","qual","quero","ir","ver","tem"]);
+const SYN={bandejao:"restaurante",refeitorio:"restaurante",almoco:"restaurante",janta:"jantar",lanchonete:"cantina",lanche:"cantina",cafe:"cantina",comida:"cantina",
+ xerox:"xerox",copia:"xerox",impressao:"xerox",imprimir:"xerox",fotocopia:"xerox",biblio:"biblioteca",livros:"livro",
+ secretaria:"coordenacao",coordenador:"coordenacao",coord:"coordenacao",enfermaria:"medico",saude:"medico",doutor:"medico",
+ dentista:"odontologico",odonto:"odontologico",psicologa:"psicologia",psicologo:"psicologia",terapia:"psicologia",
+ banheiros:"banheiro",wc:"banheiro",sanitario:"banheiro",internet:"wifi",senha:"protic",ti:"protic",informatica:"protic",
+ lab:"laboratorio",labs:"laboratorio",laboratorios:"laboratorio",auditorios:"auditorio",palestra:"auditorio",evento:"auditorio",
+ ginasio:"quadra",esporte:"quadra",esportes:"quadra",piscina:"piscina",estudar:"estudo",carteira:"carteirinha",dne:"carteirinha",
+ bolsa:"auxilio",auxilios:"auxilio",estagio:"estagio",reitor:"reitoria",professores:"docente",professor:"docente",prof:"docente",
+ adm:"administracao",contabilidade:"contabeis",eco:"economia",bio:"biologia",med:"medicina",fisio:"fisioterapia",psico:"psicologia",pedago:"pedagogia",mat:"matematica",pesca:"pesca"};
+const VOCAB=[...new Set(entries.flatMap(e=>e.hay.split(/[^a-z0-9]+/)).filter(w=>w.length>=4))];
+function lev(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;let p=Array.from({length:b.length+1},(_,i)=>i);
+  for(let i=1;i<=a.length;i++){const c=[i];let m=i;for(let j=1;j<=b.length;j++){c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));m=Math.min(m,c[j])}if(m>max)return max+1;p=c}return p[b.length]}
+// devolve as formas aceitas para uma palavra: ela mesma, o sinônimo e palavras parecidas do vocabulário
+function variants(w){const out=new Set([w]);if(SYN[w])out.add(SYN[w]);
+  if(w.length>=4){const max=w.length>=7?2:1;let bestD=max+1,best=[];
+    VOCAB.forEach(v=>{const d=Math.min(lev(w,v,max),v.length>w.length?lev(w,v.slice(0,w.length),max):max+1);
+      if(d<bestD){bestD=d;best=[v]}else if(d===bestD)best.push(v)});
+    if(bestD<=max)best.forEach(v=>out.add(v))}
+  return [...out]}
+const hit=(hay,w)=>w.length<=3?new RegExp("\\b"+w+"\\b").test(hay):hay.includes(w);
+let lastFuzzy=null;
 function search(){
   const q=norm($("q").value.trim());
   const nums=(q.match(/\d+/g)||[]).map(Number);
-  const words=q.replace(/\d+/g," ").split(/\s+/).filter(w=>w&&!["sala","salas","bloco","de","do","da","o","a","onde","fica","e"].includes(w));
+  const words=q.replace(/\d+/g," ").split(/[^a-z0-9]+/).filter(w=>w&&!STOP.has(w));
   const bloco=/bloco/.test(q)&&nums.length?String(nums[0]):null;
-  return entries.filter(e=>{
-    if(!active.has(e.b[1]))return false;
-    if(bloco)return e.b[0]===bloco;
-    if(nums.length){const n=nums[0],r=e.range;if(!r||n<r[0]||n>r[1])return false}
-    return words.every(w=>w.length<=3?new RegExp("\\b"+w+"\\b").test(e.hay):e.hay.includes(w));
-  }).map((e,i)=>{const t=words.join(" "),nm=norm([e.b[0],e.b[2],e.b[6]||""].join(" "));
-    const sc=!t?2:(norm(e.b[0])===t||norm(e.b[6]||"")===t)?0:words.every(w=>nm.includes(w))?1:2;return[sc,i,e]})
-   .sort((x,y)=>x[0]-y[0]||x[1]-y[1]).map(x=>x[2]);
+  const V=words.map(w=>({w,exact:[w,SYN[w]].filter(Boolean),all:variants(w)}));
+  lastFuzzy=null;
+  const out=[];
+  entries.forEach((e,i)=>{
+    if(!active.has(e.b[1]))return;
+    if(bloco){if(e.b[0]===bloco)out.push([0,i,e]);return}
+    if(nums.length){const n=nums[0],r=e.range;if(!r||n<r[0]||n>r[1])return}
+    let fuzzy=0;
+    for(const v of V){if(v.exact.some(x=>hit(e.hay,x)))continue;const f=v.all.find(x=>hit(e.hay,x));if(!f)return;fuzzy++;lastFuzzy=lastFuzzy||{from:v.w,to:f}}
+    const t=words.join(" "),tag=norm(e.b[6]||""),id=norm(e.b[0]);
+    const exactName=t&&(id===t||tag===t||V.every(v=>v.all.some(x=>tag===x||id===x)));
+    const inFloor=V.every(v=>v.all.some(x=>hit(e.fhay,x)));
+    const wordStart=V.every(v=>v.all.some(x=>new RegExp("\\b"+x).test(e.fhay)));
+    const sc=!t?1:exactName?0:inFloor?(wordStart?1:1.5):2;
+    out.push([sc+fuzzy*3,i,e,sc===2]);
+  });
+  out.sort((x,y)=>x[0]-y[0]||x[1]-y[1]);
+  // andares que só batem pelo nome do prédio viram um resultado por prédio
+  const seen=new Set(out.filter(x=>!x[3]).map(x=>x[2].b[0])),one=new Set();
+  return out.filter(x=>{if(!x[3])return true;const k=x[2].b[0];if(seen.has(k)||one.has(k))return false;one.add(k);return true}).map(x=>x[2]);
 }
-function pick(id,floor=null){sel={b:id,floor};if(mobile())setSheet("half");render(true);$("scroll").scrollTop=0}
+// ---------- contador de uso (GoatCounter): anônimo, sem cookies; só liga no site publicado ----------
+const STATS={code:"onde-fica-ufdpar",on:/\.github\.io$/.test(location.hostname)};
+if(STATS.on){const sc=document.createElement("script");sc.async=true;sc.src="https://gc.zgo.at/count.js";
+  sc.dataset.goatcounter=`https://${STATS.code}.goatcounter.com/count`;document.head.appendChild(sc)}
+function track(path,title){if(!STATS.on)return;try{window.goatcounter&&window.goatcounter.count&&window.goatcounter.count({path,title:title||path,event:true})}catch(_){}}
+let trackT=0,lastTracked="";
+function trackSearch(){clearTimeout(trackT);trackT=setTimeout(()=>{const q=norm($("q").value.trim()).replace(/[^a-z0-9 ]/g,"").slice(0,40).trim();
+  if(q.length>=2&&q!==lastTracked){lastTracked=q;track("busca/"+q.replace(/ +/g,"-"),"Busca: "+q)}},1500)}
+function pick(id,floor=null){track("lugar/"+String(id).toLowerCase(),"Lugar: "+id);sel={b:id,floor};if(mobile())setSheet("half");render(true);$("scroll").scrollTop=0}
 function render(move,auto=true){
   const res=search(),q=$("q").value.trim(),n=(q.match(/\d+/)||[])[0];
   if(auto&&!sel&&q&&res.length)sel={b:res[0].b[0],floor:res[0].floor};
   // lista
   const ul=$("results");ul.innerHTML="";
   $("count").textContent=q?`${res.length} ${res.length===1?"lugar encontrado":"lugares encontrados"} para “${q}”`:`Todos os lugares (${res.length})`;
+  if(q&&res.length&&lastFuzzy&&lastFuzzy.from!==lastFuzzy.to)$("count").textContent+=` · mostrando também “${lastFuzzy.to}”`;
   if(!res.length){const li=document.createElement("li");li.className="empty";
     li.textContent=n&&!/bloco/i.test(q)?`Nenhum bloco tem a sala ${n}. As salas do campus vão de 1 a 482.`:`Nada encontrado para “${q}”. Tente o curso, a sigla do setor (PREG, PRAE) ou o serviço (xérox, cantina, RU).`;ul.appendChild(li)}
   res.forEach(e=>{
@@ -512,15 +598,21 @@ function renderDetail(b,path,n){
     const win="<i></i>".repeat(4);
     lv+=`<div class="lvl${on?" on":""}"><div class="slab">${win}</div><div class="txt"><div class="fl">${FL[fl]}<b>${esc(rng(f?(f[1]||(floors.length===1?b[3]:null)):null))}</b></div>${f?`<ul>${f[2].map(i=>`<li>${esc(i)}</li>`).join("")}</ul>`:`<ul><li>Sem informação</li></ul>`}</div></div>`}
   const where=sel.floor!==null&&floors.length>1?` no ${FL[sel.floor].toLowerCase()}`:"";
+  const meters=path?Math.round(path.reduce((s,p,i)=>i?s+Math.hypot(p[0]-path[i-1][0],p[1]-path[i-1][1]):0,0)*GEO.mpu/10)*10:0;
+  const dist=`${Math.max(meters,10)} m · ${Math.max(1,Math.round(meters/1.2/60))} min a pé`;
   d.innerHTML=`<div class="dhead"><span class="pinb${isBlock(b)?"":" tagb"}"><span>${esc(b[0])}</span></span>
     <div><h2>${esc(label(b))}</h2><p class="sub">${esc(isBlock(b)?b[2]:CAT[b[1]])}${b[3]?" · "+esc(rng(b[3])):""}</p></div>
     <button type="button" id="back">Voltar</button></div>
     <div class="routeline"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><circle cx="4" cy="18" r="3" fill="var(--route)"/><path d="M4 18 C 4 8, 18 14, 18 4" stroke="var(--route)" stroke-width="2.5" fill="none" stroke-dasharray="2 4" stroke-linecap="round"/></svg>
-    <span>Caminho desenhado a partir da <b>entrada principal</b> (Av. São Sebastião)${where?`. Suba até o <b>${esc(FL[sel.floor].toLowerCase())}</b>`:""}.</span></div>
+    <span>${me?"De <b>onde você está</b>":"Da <b>entrada principal</b> (Av. São Sebastião)"}: <b>${dist}</b>${where?`. Suba até o <b>${esc(FL[sel.floor].toLowerCase())}</b>`:""}.</span></div>
+    <div class="how"><a class="btn" href="${gmaps(b)}" target="_blank" rel="noopener">Como chegar (Google Maps)</a><button type="button" class="btn" id="gpsbtn2">${me?"Atualizar minha posição":"Rota a partir de onde estou"}</button></div>
     <div class="corte" aria-label="Andares do prédio"><div class="roof"></div>${lv}<div class="ground"></div></div>${infoHTML(b)}`;
   $("back").onclick=()=>{sel=null;if(mobile())setSheet("half");render(true,false)};
+  $("gpsbtn2").onclick=locate;
+  const gm=d.querySelector(".how a.btn");if(gm)gm.onclick=()=>track("acao/como-chegar","Ação: como chegar");
 }
-$("q").addEventListener("input",()=>{sel=null;clearTimeout(window._t);window._t=setTimeout(()=>render(true),250)});
+function gmaps(b){const[x,y,w,h]=b[5],[la,lo]=planToLL(x+w/2,y+h/2);return`https://www.google.com/maps/dir/?api=1&destination=${la.toFixed(6)},${lo.toFixed(6)}&travelmode=walking`}
+$("q").addEventListener("input",()=>{trackSearch();sel=null;clearTimeout(window._t);window._t=setTimeout(()=>render(true),250)});
 $("q").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();$("q").blur();if(mobile())setSheet("half")}});
 $("clear").onclick=()=>{$("q").value="";sel=null;$("q").focus();render(true)};
 

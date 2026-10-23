@@ -9,9 +9,12 @@ e do documento "UFDPar no Censo da Educação Superior".
 
 ## Arquivos
 - `index.html` — a página (dados dos blocos ficam no início do `<script>`)
-- `planta-campus.svg` — base do mapa (ilustração oficial vetorizada, sem pinos)
+- `planta-campus.webp` — base do mapa (ilustração oficial limpa, sem pinos; 315 KB)
 - `sw.js`, `manifest.webmanifest`, `icone.svg` — funcionamento offline e instalação no celular
 
 ## Publicar
 Site estático: basta servir a pasta. No GitHub Pages: Settings → Pages → Deploy from a branch → `main` / raiz.
 Abrir direto num bloco: `…/#bloco-23`.
+
+## Novidades
+Veja o histórico de atualizações em [NOVIDADES.md](NOVIDADES.md).
