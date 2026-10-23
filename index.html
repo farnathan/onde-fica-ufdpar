@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Onde fica? · UFDPar</title>
+<meta name="description" content="Mapa interativo do Campus Ministro Reis Velloso (UFDPar): digite a sala, o curso ou o setor e veja o bloco, o andar e o caminho.">
+<meta name="theme-color" content="#0B5FA5">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Onde fica? · Campus Ministro Reis Velloso">
+<meta property="og:description" content="Mapa interativo do Campus Ministro Reis Velloso (UFDPar): digite a sala, o curso ou o setor e veja o bloco, o andar e o caminho.">
+<meta property="og:locale" content="pt_BR">
+<link rel="icon" href="icone.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest.webmanifest">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}*{box-sizing:border-box}</style>
+</head>
+<body>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Overpass:wght@700;800;900&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: app de mapa de tela única. Desktop: painel de busca à esquerda + planta. Celular: planta em tela cheia + painel que sobe de baixo. Identidade do mapa oficial "Localize-se!": azul institucional, pinos vermelhos, etiquetas laranja. */
+:root{
+  --bg:#F2F5F9; --surface:#FFFFFF; --ink:#10243A; --muted:#58697C; --line:#D6DFE9;
+  --ufd:#0B5FA5; --ufd-ink:#FFFFFF; --pin:#D42A2F; --tag:#F0931B; --tag-ink:#FFFFFF; --hi:#F7C531; --hi-ink:#2A1F00;
+  --food:#8E4A98; --park:#1D8BD3; --route:#0B5FA5;
+  --grass:#A7C985; --grass2:#93BB6E; --paving:#ECE8DF; --walk:#F7F5EF; --roof:#F6F8FA; --roof-line:#AEB8C2; --roof-shade:#D9DFE5;
+  --asphalt:#5D646D; --asphalt-ink:#FFFFFF; --field:#5E9E3B; --tile:#D98A6A; --water:#9CC6E8;
+  --paper:#FFFFFF;
+  --display:"Overpass","Arial Narrow",Arial,sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0D1622; --surface:#142131; --ink:#E5EDF6; --muted:#97A8BB; --line:#26374B;
+  --ufd:#2F7FC6; --ufd-ink:#FFFFFF; --pin:#E8474C; --tag:#E58D22; --tag-ink:#FFFFFF; --hi:#F7C531; --hi-ink:#2A1F00;
+  --food:#B474BE; --park:#3FA3E6; --route:#2F7FC6;
+  --grass:#24402C; --grass2:#1E3825; --paving:#2A3038; --walk:#343B44; --roof:#3B4553; --roof-line:#5C6B7C; --roof-shade:#313A46;
+  --asphalt:#1A1F25; --asphalt-ink:#C9D3DE; --field:#2E5E25; --tile:#8A5240; --water:#3C6688; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0D1622; --surface:#142131; --ink:#E5EDF6; --muted:#97A8BB; --line:#26374B;
+  --ufd:#2F7FC6; --ufd-ink:#FFFFFF; --pin:#E8474C; --tag:#E58D22; --tag-ink:#FFFFFF; --hi:#F7C531; --hi-ink:#2A1F00;
+  --food:#B474BE; --park:#3FA3E6; --route:#2F7FC6;
+  --grass:#24402C; --grass2:#1E3825; --paving:#2A3038; --walk:#343B44; --roof:#3B4553; --roof-line:#5C6B7C; --roof-shade:#313A46;
+  --asphalt:#1A1F25; --asphalt-ink:#C9D3DE; --field:#2E5E25; --tile:#8A5240; --water:#3C6688; color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;overflow:hidden}
+*{box-sizing:border-box}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--ufd)}
+.app{height:100%;display:grid;grid-template-rows:auto 1fr}
+.bar{background:var(--ufd);color:var(--ufd-ink);display:flex;align-items:center;gap:12px;padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.bar .mark{width:30px;height:38px;flex:none}
+.bar h1{font-family:var(--display);font-weight:900;font-size:1.45rem;line-height:1;margin:0;letter-spacing:-.01em}
+.bar p{margin:2px 0 0;font-size:.82rem;opacity:.9}
+.bar .proto{margin-left:auto;font-size:.72rem;border:1px solid color-mix(in srgb,var(--ufd-ink) 50%,transparent);border-radius:999px;padding:3px 10px;white-space:nowrap}
+@media (max-width:520px){.bar .proto{display:none}}
+.stage{position:relative;min-height:0;display:grid;grid-template-columns:400px 1fr;grid-template-rows:minmax(0,1fr)}
+.stage>.sheet{grid-column:1;grid-row:1}.stage>.mapbox{grid-column:2;grid-row:1}
+.mapbox{position:relative;min-width:0;min-height:0;background:var(--paper);overflow:hidden}
+svg#map{width:100%;height:100%;display:block;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
+svg#map.drag{cursor:grabbing}
+.zoom{position:absolute;top:12px;right:max(12px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:6px;z-index:3}
+.zoom button{width:42px;height:42px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:800 1.25rem var(--display);cursor:pointer;box-shadow:0 2px 8px rgb(0 0 0 / .15)}
+.zoom button:focus-visible{outline:3px solid var(--hi);outline-offset:1px}
+/* painel */
+.sheet{background:var(--surface);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0;z-index:5}
+.handle{display:none}
+.scroll{overflow:auto;padding-block:14px 24px;padding-left:16px;padding-right:16px;min-height:0;flex:1}
+label.q{font-family:var(--display);font-weight:800;font-size:.85rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px}
+.searchbox{display:flex;align-items:center;gap:4px;border:2px solid var(--line);border-radius:12px;background:var(--bg);padding-right:4px}
+.searchbox:focus-within{border-color:var(--ufd)}
+#q{flex:1;min-width:0;font:inherit;font-size:1.1rem;padding:11px 12px;border:0;background:transparent;color:var(--ink)}
+#q:focus{outline:none}
+#clear{font:inherit;font-size:.85rem;border:0;background:transparent;color:var(--muted);cursor:pointer;padding:6px 8px;border-radius:8px}
+#clear:focus-visible{outline:2px solid var(--ufd)}
+.hint{font-size:.8rem;color:var(--muted);margin:6px 2px 0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 0}
+.chip{font:inherit;font-size:.85rem;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:4px 11px;cursor:pointer}
+.chip:hover,.chip:focus-visible{border-color:var(--ufd);outline:none}
+.filters{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0}
+.filters button{font:inherit;font-size:.75rem;border:0;border-radius:6px;padding:3px 8px;cursor:pointer;background:color-mix(in srgb,var(--ufd) 12%,var(--surface));color:var(--ink)}
+.filters button[aria-pressed="false"]{background:transparent;color:var(--muted);text-decoration:line-through}
+.filters button:focus-visible{outline:2px solid var(--ufd)}
+#count{font-size:.85rem;color:var(--muted);margin:16px 2px 6px}
+#results{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+#results li>button{width:100%;text-align:left;font:inherit;color:var(--ink);background:transparent;border:1px solid transparent;border-radius:10px;padding:8px 10px;display:grid;grid-template-columns:auto 1fr;gap:1px 12px;align-items:center;cursor:pointer}
+#results li>button:hover,#results li>button:focus-visible{background:var(--bg);outline:none;border-color:var(--line)}
+#results li>button.on{background:color-mix(in srgb,var(--hi) 22%,var(--surface));border-color:var(--hi)}
+.pinb{width:38px;height:38px;border-radius:50% 50% 50% 4px;transform:rotate(-45deg);display:grid;place-items:center;grid-row:span 2;background:var(--pin);flex:none}
+.pinb span{transform:rotate(45deg);color:#fff;font:900 .95rem var(--display);font-variant-numeric:tabular-nums}
+.pinb.tagb{background:var(--tag);border-radius:8px;transform:none}
+.pinb.tagb span{transform:none;font-size:.62rem;letter-spacing:.02em}
+.r-title{font-weight:700;line-height:1.25;min-width:0}
+.r-meta{font-size:.84rem;color:var(--muted);min-width:0;font-variant-numeric:tabular-nums}
+.empty{padding:12px 4px;color:var(--muted);font-size:.95rem}
+/* detalhe */
+#detail{margin-top:14px}
+#detail[hidden]{display:none}
+.dhead{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center}
+.dhead h2{font-family:var(--display);font-weight:900;font-size:1.35rem;line-height:1.1;margin:0;text-wrap:balance}
+.dhead .sub{color:var(--muted);font-size:.85rem;margin:2px 0 0;font-variant-numeric:tabular-nums}
+#back{font:inherit;font-size:.85rem;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:5px 10px;cursor:pointer}
+#back:focus-visible{outline:2px solid var(--ufd)}
+.routeline{display:flex;align-items:center;gap:8px;margin:12px 0 0;font-size:.88rem;color:var(--ink);background:color-mix(in srgb,var(--route) 10%,var(--surface));border-radius:10px;padding:8px 10px}
+.routeline svg{flex:none}
+/* corte do prédio */
+.corte{margin-top:14px;display:flex;flex-direction:column}
+.roof{height:10px;margin-left:6px;width:116px;background:var(--roof-line);clip-path:polygon(4% 100%,96% 100%,88% 0,12% 0)}
+.lvl{display:grid;grid-template-columns:128px 1fr;gap:12px;align-items:stretch}
+.slab{position:relative;margin-left:6px;width:116px;border:2px solid var(--roof-line);border-bottom-width:0;background:var(--roof);display:flex;align-items:center;justify-content:space-evenly;padding:0 6px;min-height:52px}
+.lvl:last-child .slab{border-bottom-width:2px}
+.slab i{width:14px;height:18px;border-radius:2px;background:var(--roof-shade);display:block}
+.lvl.on .slab{background:var(--hi);border-color:var(--ink)}
+.lvl.on .slab i{background:color-mix(in srgb,var(--hi-ink) 25%,var(--hi))}
+.lvl.on + .lvl .slab{border-top-color:var(--ink)}
+.lvl .txt{padding:6px 0 10px;border-bottom:1px solid var(--line);min-width:0}
+.lvl .fl{font-family:var(--display);font-weight:800;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.lvl.on .fl{color:var(--ink)}
+.lvl .fl b{font-family:var(--body);font-weight:400;text-transform:none;letter-spacing:0;font-variant-numeric:tabular-nums;margin-left:6px}
+.lvl ul{margin:2px 0 0;padding-left:16px;font-size:.92rem}
+.ground{height:6px;margin-top:0;width:140px;background:repeating-linear-gradient(45deg,var(--muted) 0 2px,transparent 2px 6px);opacity:.6}
+.note{font-size:.78rem;color:var(--muted);margin:14px 0 0}
+.info{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
+.info h3{font-family:var(--display);font-weight:800;font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:12px 0 4px}
+.info h3:first-of-type{margin-top:4px}
+.info dl{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;margin:0;font-size:.92rem;font-variant-numeric:tabular-nums}
+.info dt{font-weight:700}.info dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.info ul{margin:0;padding-left:18px;font-size:.92rem;display:flex;flex-direction:column;gap:3px}
+.sel-text{user-select:all;-webkit-user-select:all}
+.status{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:.9rem;margin:0 0 4px;padding:4px 10px;border-radius:999px;background:var(--bg)}
+.status span{width:9px;height:9px;border-radius:50%;background:var(--muted)}
+.status.on span{background:#1F9D55}.status.mid span{background:var(--tag)}.status.off span{background:var(--pin)}
+.src{font-size:.75rem;color:var(--muted);margin:10px 0 0}
+/* mapa */
+.blk{cursor:pointer}
+.blk .b{fill:transparent;stroke:transparent;stroke-width:3;transition:fill .2s}
+.blk:hover .b,.blk:focus-visible .b{stroke:var(--ufd);stroke-width:3;fill:color-mix(in srgb,var(--ufd) 10%,transparent)}
+.blk:focus{outline:none}
+.blk.sel .b{fill:color-mix(in srgb,var(--hi) 55%,transparent);stroke:#1E1600;stroke-width:3}
+.pin{cursor:pointer;transition:opacity .2s}
+.pin .drop{fill:var(--pin);stroke:#fff;stroke-width:1.5}
+.pin text{font:900 14px var(--display);fill:#fff;pointer-events:none}
+.pin.dim .drop{fill:#A3ABB4}.tagm.dim rect,.tagm.dim path{fill:#A3ABB4!important}
+.pin.sel .drop{fill:var(--ufd);stroke:var(--hi);stroke-width:2.5}
+.tagm rect{fill:var(--tag)}.tagm text{font:800 12px var(--display);fill:var(--tag-ink)}
+.tagm{cursor:pointer;transition:opacity .2s}
+.tagm.sel rect{fill:var(--ufd);stroke:var(--hi);stroke-width:2}
+.ico rect{stroke:#fff;stroke-width:1.2}
+.road-t{font:800 22px var(--display);letter-spacing:.06em;fill:var(--asphalt-ink)}
+.lm{font:700 13px var(--body);fill:#1B2A1E}
+#route{fill:none;stroke:var(--route);stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1 10}
+#routeHalo{fill:none;stroke:#FFFFFF;stroke-width:10;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
+@media (prefers-reduced-motion:no-preference){#route{animation:march 1s linear infinite}}
+@keyframes march{to{stroke-dashoffset:-11}}
+.start circle{fill:var(--route);stroke:#fff;stroke-width:2}
+/* celular: planta em tela cheia + painel inferior */
+@media (max-width:860px){
+  .stage{grid-template-columns:1fr}
+  .stage>.mapbox{grid-row:1;grid-column:1}
+  .sheet{position:absolute;left:0;right:0;bottom:0;height:var(--sh,46%);border-right:0;border-top:1px solid var(--line);border-radius:18px 18px 0 0;box-shadow:0 -6px 24px rgb(0 0 0 / .18);transition:height .25s ease;padding-bottom:env(safe-area-inset-bottom,0px)}
+  .sheet.dragging{transition:none}
+  .handle{display:flex;justify-content:center;align-items:center;height:26px;flex:none;cursor:grab;border:0;background:transparent;width:100%;touch-action:none}
+  .handle::before{content:"";width:44px;height:5px;border-radius:3px;background:var(--line)}
+  .handle:focus-visible::before{background:var(--ufd)}
+  .scroll{padding-top:2px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .zoom{top:10px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="app">
+  <header class="bar">
+    <svg class="mark" viewBox="0 0 30 38" aria-hidden="true"><path d="M15 37C15 37 2 22 2 14a13 13 0 0 1 26 0c0 8-13 23-13 23z" fill="#fff"/><circle cx="15" cy="14" r="6" fill="var(--ufd)"/></svg>
+    <div><h1>Onde fica?</h1><p>UFDPar · Campus Ministro Reis Velloso</p></div>
+    <span class="proto">Protótipo</span>
+  </header>
+  <main class="stage">
+    <div class="mapbox" id="mapbox">
+      <svg id="map" role="img" aria-label="Planta do Campus Ministro Reis Velloso com blocos numerados. Use a busca para localizar salas e setores." preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="zoom">
+        <button type="button" id="zin" aria-label="Aproximar">+</button>
+        <button type="button" id="zout" aria-label="Afastar">−</button>
+        <button type="button" id="zfit" aria-label="Ver o campus inteiro">⤢</button>
+      </div>
+    </div>
+    <aside class="sheet" id="sheet" aria-label="Busca e informações">
+      <button class="handle" id="handle" type="button" aria-label="Expandir ou recolher o painel"></button>
+      <div class="scroll" id="scroll">
+        <label class="q" for="q">Procure sala, curso, setor ou serviço</label>
+        <div class="searchbox">
+          <input id="q" type="search" autocomplete="off" enterkeyhint="search" placeholder="Ex.: 405, Pedagogia, xérox, PRAE" value="sala 405">
+          <button id="clear" type="button">Limpar</button>
+        </div>
+        <p class="hint">O número da sala no seu horário já diz o bloco e o andar.</p>
+        <section id="detail" hidden aria-live="polite"></section>
+        <div class="chips" id="chips" aria-label="Buscas rápidas"></div>
+        <div class="filters" id="filters" aria-label="Filtrar por tipo"></div>
+        <p id="count" aria-live="polite"></p>
+        <ul id="results"></ul>
+        <p class="note">Dados do mapa oficial “Localize-se!” (Comunicação Institucional UFDPar). Caminhos aproximados, traçados pelos passeios do campus.</p>
+      </div>
+    </aside>
+  </main>
+</div>
+
+<script>
+// ---------- dados (mapa oficial "Localize-se!") ----------
+const CAT={aula:"Aulas",adm:"Administração",lab:"Pesquisa",est:"Estudantes",apoio:"Serviços"};
+const FL=["Térreo","1º andar","2º andar","3º andar","4º andar"];
+// [id, cat, nome, salas, andares:[[andar, salas|null, itens[], palavras]], retângulo [x,y,w,h], etiqueta?]
+const B=[
+ ["1","lab","Núcleo de Pesquisa e Pós-Graduação",[1,15],[[0,null,["Biotério","Laboratórios de pós-graduação","Coordenação do PPGBIOTEC"],"pos graduacao pesquisa biotecnologia ppgbiotec bioterio"]],[1451,1120,166,65]],
+ ["2","aula","Salas de aula · Administração",[16,19],[[0,null,["Salas de aula do curso de Administração"],"administracao adm aula"]],[1535,1001,66,81]],
+ ["3","lab","Centro de Línguas e núcleos",[20,30],[[0,null,["CLM – Centro de Línguas","Núcleos de pesquisa","Gabinetes dos docentes"],"clm centro de linguas ingles espanhol idiomas nucleo professor docente gabinete"]],[1435,1001,66,81]],
+ ["4","adm","Coordenações de Administração e Contábeis",[31,38],[[0,null,["Coordenação do curso de Administração","Coordenação do curso de Ciências Contábeis","NAF – Núcleo de Apoio Contábil e Fiscal","Empresas Júnior"],"coordenacao coordenador administracao contabeis contabilidade naf empresa junior"]],[1479,951,72,38]],
+ ["5","aula","Salas de aula · Ciências Contábeis",[39,42],[[0,null,["Salas de aula do curso de Ciências Contábeis"],"contabeis contabilidade aula"]],[1535,856,66,79]],
+ ["6","lab","Pós-graduação e programas",[43,50],[[0,null,["PPGAPM","PPGCBM","PIBID","PET Turismo","Laboratórios de pesquisa"],"ppgapm ppgcbm pibid pet turismo laboratorio pesquisa pos graduacao"]],[1435,860,66,75]],
+ ["7","apoio","Cantina e serviços",[51,52],[[0,null,["Cantina","Serviços terceirizados","Banheiros"],"cantina lanche comer cafe comida terceirizados banheiro"]],[1482,795,66,52]],
+ ["8","aula","Salas de aula · Pedagogia",[53,56],[[0,null,["Salas de aula do curso de Pedagogia"],"pedagogia aula"]],[1535,701,66,84]],
+ ["9","lab","Núcleos de pesquisa e editora",[57,67],[[0,null,["Núcleos de pesquisa","FioCruz","EDUFDPar (editora)"],"nucleo pesquisa fiocruz edufdpar editora livro"]],[1435,701,66,84]],
+ ["10","adm","Reitoria",[68,74],[[0,null,["Reitoria","Ouvidoria","Divisão de Controle de Patrimônio e Suprimentos"],"reitoria reitor ouvidoria reclamacao patrimonio suprimentos"]],[1276,1001,68,81]],
+ ["11","adm","PROPLAN, PROGEP e Protocolo",[75,82],[[0,null,["PROPLAN","PROGEP","Divisão de Protocolo","Banheiros"],"proplan progep planejamento gestao de pessoas rh protocolo documento processo banheiro"]],[1177,1001,70,81]],
+ ["12","adm","PREG e SAE",[83,89],[[0,null,["SAE","PREG – Pró-Reitoria de Ensino de Graduação"],"preg sae graduacao ensino matricula calendario academico diploma"]],[1272,929,72,53]],
+ ["13","est","Centros acadêmicos",[90,101],[[0,null,["Centros acadêmicos"],"centro academico ca da diretorio estudantes"]],[1177,929,70,53]],
+ ["14","adm","PREUNI e Auditório Central",[102,102],[[0,null,["PREUNI – Prefeitura Universitária","Auditório Central"],"preuni prefeitura manutencao auditorio central evento palestra"]],[1182,845,165,84]],
+ ["15","apoio","Cantina, xérox e vigilância",[103,106],[[0,null,["Cantina","Xérox","Sala de vigilância"],"cantina xerox copia impressao lanche comer vigilancia seguranca achados perdidos"]],[1241,792,85,50]],
+ ["16","adm","Coordenações de cursos",[107,122],[[0,null,["Coordenações dos cursos de graduação","Coordenação do PPGPSI","Coordenação do PPGSF","Núcleo de pesquisa"],"coordenacao coordenador curso graduacao ppgpsi ppgsf nucleo pesquisa"]],[1282,672,69,117]],
+ ["17","adm","Gabinetes dos docentes",[123,137],[[0,null,["Gabinetes dos docentes"],"professor docente gabinete sala orientacao"]],[1182,672,53,117]],
+ ["18","est","PRAE",[138,148],[[0,null,["PRAE – Pró-Reitoria de Assuntos Estudantis","Serviço Social, Pedagógico, de Psicologia, Médico e Odontológico","NIA – Núcleo de Inclusão e Acessibilidade","Carteirinha do RU e CADUNI"],"prae assistencia estudantil auxilio bolsa moradia alimentacao residencia creche bae bincs caduni carteirinha servico social pedagogico psicologia psicologo medico consulta dentista odontologico saude nia inclusao acessibilidade deficiencia"]],[1101,832,28,88]],
+ ["19","aula","Clínicas e salas de aula",[149,203],[[0,[149,190],["Clínica de Fisioterapia","Clínica de Psicologia"],"clinica clinicas escola fisioterapia psicologia atendimento terapia"],[1,[191,203],["Laboratórios","Salas de aula: Psicologia, Fisioterapia e Biologia"],"laboratorio aula psicologia fisioterapia biologia"]],[1185,569,267,69]],
+ ["20","aula","Laboratórios, Herbário e salas de aula",[204,241],[[0,[204,230],["Laboratórios"],"laboratorio lab"],[1,[231,241],["Laboratórios","Herbário","Salas de aula: Biomedicina, Biologia e Turismo"],"laboratorio herbario biomedicina biologia turismo aula"]],[1185,488,267,69]],
+ ["21","aula","Medicina, pró-reitorias e auditórios",[242,358],[[0,[242,275],["Coordenação de Laboratórios","Laboratórios","Sala de aula do PPGPSI"],"coordenacao laboratorio ppgpsi"],[1,[276,286],["Salas de aula: Medicina e Fisioterapia"],"medicina fisioterapia aula"],[2,[287,321],["Coordenação do curso de Medicina","PROTIC (tecnologia da informação)","PROJUR","FADEX","CCI","Laboratório","Salas de tutoria","Corregedoria","Auditoria"],"coordenacao medicina protic ti informatica internet wifi email sigaa senha projur fadex cci tutoria corregedoria auditoria"],[3,[322,352],["Laboratórios","PREX","PROPOPI","PRAD","PROFSAÚDE"],"laboratorio prex extensao propopi pesquisa pos graduacao prad profsaude"],[4,[353,358],["Centro de Convenções","Auditório Leste","Auditório Oeste"],"centro de convencoes auditorio leste oeste evento palestra"]],[1185,394,274,71]],
+ ["22","lab","Laboratórios e Coleção Zoológica",[359,383],[[0,null,["Laboratórios","Coleção Zoológica","Gabinetes dos docentes","Dormitórios dos motoristas"],"laboratorio colecao zoologica professor docente gabinete motoristas"]],[1191,346,270,36]],
+ ["23","aula","DCE, Matemática, Economia e mais",[384,459],[[0,[384,395],["Espaço de convivência","DCE","Ludoteca","Laboratórios","Salas de aula: PPGCBM e PPGBIOTEC"],"convivencia dce diretorio central estudantes dne carteira estudantil meia entrada ludoteca laboratorio ppgcbm ppgbiotec"],[1,[396,403],["Salas de aula: Matemática e Economia"],"matematica economia aula"],[2,[404,411],["Laboratórios","Salas de aula: Engenharia de Pesca e Turismo"],"laboratorio engenharia de pesca turismo aula"],[3,[412,459],["Gabinetes dos docentes"],"professor docente gabinete"]],[1185,272,278,58]],
+ ["24","est","Fisioterapia Aquática",[460,463],[[0,null,["Setor de Fisioterapia Aquática (Anexo CEF)"],"fisioterapia aquatica piscina cef"]],[1492,272,84,52]],
+ ["25","lab","Laboratórios e terraço",[464,469],[[0,[464,469],["Laboratórios"],"laboratorio"],[1,null,["Terraço"],"terraco"]],[1501,351,109,69]],
+ ["26","lab","Laboratórios e PIBID",[470,482],[[0,[470,477],["Laboratórios"],"laboratorio"],[1,[478,482],["Laboratórios","PIBID"],"laboratorio pibid"]],[1501,495,109,79]],
+ ["EA","aula","Escola de Aplicação",null,[[0,null,["Escola de Aplicação Ministro Reis Velloso"],"escola aplicacao eamrv estagio licenciatura"]],[844,701,197,32],"Escola de Aplicação"],
+ ["RU","apoio","Restaurante Universitário",null,[[0,null,["Restaurante Universitário"],"ru restaurante universitario almoco jantar comida bandejao refeicao cardapio carteirinha"]],[1482,585,165,87],"RU"],
+ ["BC","est","Biblioteca Central",null,[[0,null,["Biblioteca Central Professor Cândido Athayde"],"biblioteca livro emprestimo estudo cabine sala de estudo em grupo acervo renovacao"]],[1341,773,125,84],"Biblioteca Central"],
+ ["QE","apoio","Quadra de Esportes",null,[[0,null,["Quadra de Esportes"],"quadra esporte futsal volei basquete"]],[1501,420,109,75],"Quadra de Esportes"]
+];
+// passeios do campus (segmentos horizontais/verticais), usados no desenho e na rota
+const WALK=[
+ [1385,862,1385,1201],[1145,1095,1625,1095],[1145,992,1625,992],[1258,662,1258,1095],[1420,662,1420,1095],
+ [1518,662,1518,1095],[1620,662,1620,1201],[1145,255,1145,1201],[1145,662,1625,662],[1145,338,1472,338],
+ [1145,388,1472,388],[1145,476,1472,476],[1145,563,1472,563],[1472,255,1472,662],[1145,255,1660,255],[1041,760,1145,760]
+];
+const ENTRY=[1385,1201];
+// informações extras por local, com a fonte de cada uma
+const INFO={
+ RU:{hours:[["Seg a sex","7h às 20h"],["Sábado","7h às 14h"]],meals:[["Almoço","seg a sex 11h às 13h30 · sáb 11h às 13h"],["Jantar","seg a sex 17h às 19h"]],
+   notes:["Entrada com crédito digital, carteira do RU e documento oficial com foto.","1 almoço e 1 jantar por pessoa por dia.","Cardápio do dia nos stories do Instagram da UFDPar e da PRAE.","Estudantes com necessidades específicas podem pedir ao NIA para comer em sala reservada.","Refeitório com 149 lugares."],
+   src:"Resolução CONSUNI nº 184/2026 · Guia do Calouro · Diagnóstico PRAE"},
+ BC:{notes:["92 assentos, cabines individuais e salas de estudo em grupo.","Empréstimo: graduação leva até 3 livros por 7 dias; renovação on-line pelo SIGAA (menu Biblioteca) até 3 vezes.","Empréstimo extra (até 3 títulos por 4 horas): das 8h às 16h.","Proibido entrar com comida e bebida, exceto água.","Acessível: sinalização tátil e visual, banheiros e bebedouros acessíveis, leitor de tela e teclado virtual."],
+   src:"Guia do Calouro · UFDPar no Censo da Educação Superior (2024)"},
+ "18":{notes:["Serviço Médico: seg, qua e qui das 13h às 18h e ter das 12h às 14h, com agendamento por e-mail ou na recepção.","Benefícios (BAE, BINCS, Auxílio Residência, Auxílio Creche, APEC) exigem o CADUNI e inscrição nos editais do início do semestre.","NIA: apoio a estudantes com deficiência ou necessidades específicas."],
+   contact:[["Divisão de Alimentação e Nutrição","prae.cae.dan@ufdpar.edu.br"]],
+   src:"Diagnóstico PRAE (horário do Serviço Médico de 2022, confirme) · Guia do Calouro · Res. CONSUNI 184/2026"},
+ "23":{notes:["O DCE Marielle Franco fica no espaço de convivência e emite a DNE (carteira estudantil)."],
+   contact:[["DCE","dce.ufdpar@gmail.com"],["Instagram","@dce.ufdpar"]],src:"Guia do Calouro"}
+};
+// RU aberto agora? (horário de Parnaíba, UTC−3)
+function ruStatus(){
+  const d=new Date(Date.now()-3*3600e3),wd=d.getUTCDay(),m=d.getUTCHours()*60+d.getUTCMinutes();
+  const inR=(a,b)=>m>=a&&m<b;
+  if(wd>=1&&wd<=5){if(inR(660,810))return["on","Servindo almoço agora"];if(inR(1020,1140))return["on","Servindo jantar agora"];if(inR(420,1200))return["mid","Aberto, fora do horário de refeição"]}
+  if(wd===6){if(inR(660,780))return["on","Servindo almoço agora"];if(inR(420,840))return["mid","Aberto, fora do horário de refeição"]}
+  return["off","Fechado agora"];
+}
+// ponta de cada pino oficial e centro de cada etiqueta oficial (unidades da planta)
+const PIN={23:[1260,315],22:[1290,374],24:[1517,316],25:[1557,397],21:[1290,452],26:[1557,554],20:[1292,551],19:[1293,632],17:[1217,773],16:[1316,749],15:[1266,815],14:[1215,890],18:[1116,907],13:[1211,967],12:[1309,967],11:[1211,1070],10:[1310,1072],9:[1471,768],8:[1566,776],7:[1514,837],6:[1466,918],5:[1566,909],4:[1515,997],3:[1468,1065],2:[1566,1065],1:[1477,1151]};
+const TAG={RU:[1556,630],BC:[1385,807],QE:[1593,451],EA:[952,704]};
+const CORE={x:1000,y:240,w:690,h:980}, ALL={x:820,y:180,w:1040,h:1110};
+
+const norm=s=>s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/-/g,"");
+const isBlock=b=>/^\d+$/.test(b[0]);
+const label=b=>isBlock(b)?"Bloco "+b[0]:b[2];
+const rng=r=>r?(r[0]===r[1]?`sala ${r[0]}`:`salas ${r[0]}–${r[1]}`):"";
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const entries=[];
+B.forEach(b=>b[4].forEach(f=>entries.push({b,floor:f[0],range:f[1]||(b[4].length===1?b[3]:null),items:f[2],hay:norm([b[2],f[2].join(" "),f[3],isBlock(b)?"bloco "+b[0]:""].join(" "))})));
+const $=id=>document.getElementById(id);
+const active=new Set(Object.keys(CAT));
+let sel=null;
+
+// ---------- planta vetorial ----------
+const svg=$("map"),NS="http://www.w3.org/2000/svg";
+const mk=(t,a,p=svg)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e};
+const gBase=mk("g",{}),gBld=mk("g",{}),gRoute=mk("g",{}),gIco=mk("g",{}),gPins=mk("g",{});
+// base: ilustração oficial "Localize-se!" vetorizada, sem os pinos e etiquetas (redesenhados abaixo, clicáveis)
+mk("rect",{x:600,y:60,width:1400,height:1400,fill:"var(--paper)"},gBase);
+mk("image",{href:"planta-campus.svg",x:760,y:160,width:1100,height:1140,preserveAspectRatio:"none"},gBase);
+const els={};
+B.forEach(b=>{
+  const [x,y,w,h]=b[5];
+  const g=mk("g",{class:"blk",tabindex:0,role:"button","aria-label":`${label(b)}: ${b[2]}`},gBld);
+  mk("rect",{class:"b",x:x-2,y:y-2,width:w+4,height:h+4,rx:3},g);
+  els[b[0]]={g};
+  g.addEventListener("click",()=>tap(()=>pick(b[0])));
+  g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();pick(b[0])}});
+});
+// entrada
+const st=mk("g",{class:"start"},gIco);mk("circle",{cx:ENTRY[0],cy:ENTRY[1],r:8},st);
+mk("text",{x:ENTRY[0]+14,y:ENTRY[1]-8,class:"lm"},st).textContent="Entrada principal";
+// pinos e etiquetas
+const pinEls=[];
+B.forEach(b=>{
+  const [x,y,w,h]=b[5];const cx=x+w/2,cy=y+h/2;
+  let g;
+  if(isBlock(b)){
+    g=mk("g",{class:"pin","aria-hidden":"true"},gPins);
+    const inner=mk("g",{},g);
+    mk("path",{class:"drop",d:"M0 0 C-4 -9 -15 -18 -15 -30 A15 15 0 1 1 15 -30 C15 -18 4 -9 0 0 Z"},inner);
+    const t=mk("text",{x:0,y:-25.5,"text-anchor":"middle"},inner);t.textContent=b[0];
+    const P=PIN[b[0]]||[cx,cy];pinEls.push({g,inner,x:P[0],y:P[1]});
+  }else{
+    g=mk("g",{class:"tagm","aria-hidden":"true"},gPins);
+    const inner=mk("g",{},g);
+    const tw=b[6].length*7.4+16;
+    mk("rect",{x:-tw/2,y:-13,width:tw,height:22,rx:5},inner);
+    mk("path",{d:"M-5 9 L0 16 L5 9 Z",style:"fill:var(--tag)"},inner);
+    const t=mk("text",{x:0,y:3,"text-anchor":"middle"},inner);t.textContent=b[6];
+    const T=TAG[b[0]]||[cx,cy];pinEls.push({g,inner,x:T[0],y:T[1]});
+  }
+  g.addEventListener("click",()=>tap(()=>pick(b[0])));
+  els[b[0]].pin=g;
+});
+[["Clínicas",1374,606],["Convivência",1442,273],["Auditório Central",1316,880],["PREUNI",1167,864],["PRAE",1091,835],["Núcleo de Pesquisa e Pós-Graduação",1572,1131]].forEach(([t,x,y])=>{
+  const g=mk("g",{class:"tagm","aria-hidden":"true",style:"pointer-events:none"},gPins);const inner=mk("g",{},g);
+  const tw=t.length*7.4+16;mk("rect",{x:-tw/2,y:-13,width:tw,height:22,rx:5},inner);
+  mk("text",{x:0,y:3,"text-anchor":"middle"},inner).textContent=t;pinEls.push({g,inner,x,y,static:true});
+});
+const halo=mk("polyline",{id:"routeHalo","vector-effect":"non-scaling-stroke"},gRoute),route=mk("polyline",{id:"route","vector-effect":"non-scaling-stroke"},gRoute);
+
+// ---------- rota pelos passeios (Dijkstra) ----------
+function routeTo(rect){
+  const [rx,ry,rw,rh]=rect,cx=rx+rw/2,cy=ry+rh/2;
+  // ponto mais próximo nos passeios
+  let best=null;
+  WALK.forEach((s,i)=>{const [x1,y1,x2,y2]=s;const px=Math.min(Math.max(cx,Math.min(x1,x2)),Math.max(x1,x2)),py=Math.min(Math.max(cy,Math.min(y1,y2)),Math.max(y1,y2));const d=Math.hypot(px-cx,py-cy);if(!best||d<best.d)best={d,p:[px,py],i}});
+  const pts=WALK.map(()=>[]);
+  WALK.forEach((s,i)=>{pts[i].push([s[0],s[1]],[s[2],s[3]])});
+  for(let i=0;i<WALK.length;i++)for(let j=i+1;j<WALK.length;j++){
+    const a=WALK[i],b=WALK[j];const av=a[0]===a[2],bv=b[0]===b[2];if(av===bv)continue;
+    const V=av?a:b,H=av?b:a;const x=V[0],y=H[1];
+    if(x>=Math.min(H[0],H[2])-.5&&x<=Math.max(H[0],H[2])+.5&&y>=Math.min(V[1],V[3])-.5&&y<=Math.max(V[1],V[3])+.5){pts[i].push([x,y]);pts[j].push([x,y])}}
+  pts[best.i].push(best.p);
+  const key=p=>p[0].toFixed(1)+","+p[1].toFixed(1),adj={};
+  const link=(p,q)=>{const d=Math.hypot(p[0]-q[0],p[1]-q[1]);(adj[key(p)]=adj[key(p)]||[]).push([key(q),d,q]);(adj[key(q)]=adj[key(q)]||[]).push([key(p),d,p])};
+  pts.forEach((list,i)=>{const s=WALK[i],v=s[0]===s[2];list.sort((p,q)=>v?p[1]-q[1]:p[0]-q[0]);for(let k=1;k<list.length;k++)link(list[k-1],list[k])});
+  const src=key(ENTRY),dst=key(best.p),dist={[src]:0},prev={},pos={[src]:ENTRY},todo=new Set([src]);
+  while(todo.size){let u=null;todo.forEach(k=>{if(u===null||dist[k]<dist[u])u=k});todo.delete(u);if(u===dst)break;
+    (adj[u]||[]).forEach(([v,d,p])=>{const nd=dist[u]+d;if(dist[v]===undefined||nd<dist[v]){dist[v]=nd;prev[v]=u;pos[v]=p;todo.add(v)}})}
+  const path=[];let k=dst;while(k){path.unshift(pos[k]);k=prev[k]}
+  const ex=Math.min(Math.max(best.p[0],rx),rx+rw),ey=Math.min(Math.max(best.p[1],ry),ry+rh);
+  if(Math.hypot(ex-best.p[0],ey-best.p[1])>1)path.push([ex,ey]);
+  return path;
+}
+function showRoute(b){
+  if(!b){route.setAttribute("points","");halo.setAttribute("points","");return null}
+  const p=routeTo(b[5]),s=p.map(q=>q.join(",")).join(" ");
+  route.setAttribute("points",s);halo.setAttribute("points",s);return p;
+}
+
+// ---------- zoom e arrasto ----------
+let vb={...CORE};
+const mapbox=$("mapbox"),sheet=$("sheet");
+const mobile=()=>matchMedia("(max-width:860px)").matches;
+const occluded=()=>{if(!mobile())return 0;const H=mapbox.clientHeight,f=SH[sheet.dataset.state];return Math.min(f?f*H:sheet.getBoundingClientRect().height,H*.92)};
+function applyVB(){
+  svg.setAttribute("viewBox",`${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
+  const cw=Math.max(mapbox.clientWidth,1),s=Math.min(1.25,60*vb.w/(45*cw));
+  pinEls.forEach(p=>p.g.setAttribute("transform",`translate(${p.x} ${p.y}) scale(${s})`));
+}
+function frame(r,pad=40){
+  const cw=mapbox.clientWidth||1,ch=mapbox.clientHeight||1,occ=occluded(),vh=Math.max(ch-occ,ch*.3);
+  const k=Math.max((r.w+pad*2)/cw,(r.h+pad*2)/vh);
+  const cx=r.x+r.w/2,cy=r.y+r.h/2;
+  return {x:cx-cw/2*k,y:cy-vh/2*k,w:cw*k,h:ch*k};
+}
+const reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;
+let anim=0;
+function goTo(t){
+  cancelAnimationFrame(anim);
+  if(reduce){vb=t;applyVB();return}
+  const f={...vb},t0=performance.now(),D=420;
+  const step=n=>{const k=Math.min(1,(n-t0)/D),e=1-Math.pow(1-k,3);vb={x:f.x+(t.x-f.x)*e,y:f.y+(t.y-f.y)*e,w:f.w+(t.w-f.w)*e,h:f.h+(t.h-f.h)*e};applyVB();if(k<1)anim=requestAnimationFrame(step)};
+  anim=requestAnimationFrame(step);
+}
+function zoomAt(f,px,py){
+  const cw=mapbox.clientWidth,ch=mapbox.clientHeight;
+  const ux=vb.x+px/cw*vb.w,uy=vb.y+py/ch*vb.h;
+  let w=Math.min(1500,Math.max(140,vb.w*f));const k=w/vb.w;
+  vb={x:ux-(ux-vb.x)*k,y:uy-(uy-vb.y)*k,w,h:vb.h*k};applyVB();
+}
+const ptrs=new Map();let moved=0,last=null,pinch=null;
+svg.addEventListener("pointerdown",e=>{ptrs.set(e.pointerId,[e.clientX,e.clientY]);moved=0;cancelAnimationFrame(anim);svg.classList.add("drag");
+  if(ptrs.size===2){const [a,b]=[...ptrs.values()];pinch={d:Math.hypot(a[0]-b[0],a[1]-b[1])}}});
+svg.addEventListener("pointermove",e=>{if(!ptrs.has(e.pointerId))return;const p=ptrs.get(e.pointerId),dx=e.clientX-p[0],dy=e.clientY-p[1];
+  ptrs.set(e.pointerId,[e.clientX,e.clientY]);moved+=Math.abs(dx)+Math.abs(dy);if(moved>8&&!svg.hasPointerCapture(e.pointerId)){try{svg.setPointerCapture(e.pointerId)}catch(_){}}
+  if(ptrs.size===2&&pinch){const [a,b]=[...ptrs.values()],d=Math.hypot(a[0]-b[0],a[1]-b[1]);const r=svg.getBoundingClientRect();
+    zoomAt(pinch.d/d,(a[0]+b[0])/2-r.left,(a[1]+b[1])/2-r.top);pinch.d=d;return}
+  const k=vb.w/mapbox.clientWidth;vb={...vb,x:vb.x-dx*k,y:vb.y-dy*k};applyVB()});
+const up=e=>{ptrs.delete(e.pointerId);if(ptrs.size<2)pinch=null;if(!ptrs.size)svg.classList.remove("drag")};
+svg.addEventListener("pointerup",up);svg.addEventListener("pointercancel",up);
+svg.addEventListener("wheel",e=>{e.preventDefault();const r=svg.getBoundingClientRect();zoomAt(Math.exp(e.deltaY*.0015),e.clientX-r.left,e.clientY-r.top)},{passive:false});
+function tap(fn){if(moved<8)fn()}
+const center=()=>{const cw=mapbox.clientWidth,ch=mapbox.clientHeight,occ=occluded();return [cw/2,(ch-occ)/2]};
+$("zin").onclick=()=>zoomAt(.7,...center());
+$("zout").onclick=()=>zoomAt(1.4,...center());
+$("zfit").onclick=()=>goTo(frame(CORE,10));
+new ResizeObserver(()=>{const cw=mapbox.clientWidth,ch=mapbox.clientHeight;if(!cw||!ch)return;const cy=vb.y+vb.h/2;vb.h=vb.w*ch/cw;vb.y=cy-vb.h/2;applyVB()}).observe(mapbox);
+
+// ---------- painel inferior (celular) ----------
+const SH={peek:.30,half:.52,full:.9};
+function setSheet(s){sheet.dataset.state=s;sheet.style.setProperty("--sh",Math.round(SH[s]*100)+"%")}
+setSheet("half");
+(()=>{const h=$("handle");let y0=null,h0=0,dy=0;
+  h.addEventListener("pointerdown",e=>{if(!mobile())return;y0=e.clientY;h0=sheet.getBoundingClientRect().height;dy=0;h.setPointerCapture(e.pointerId);sheet.classList.add("dragging")});
+  h.addEventListener("pointermove",e=>{if(y0===null)return;dy=e.clientY-y0;const H=mapbox.clientHeight;sheet.style.setProperty("--sh",Math.max(H*.18,Math.min(H*.94,h0-dy))+"px")});
+  const end=()=>{if(y0===null)return;sheet.classList.remove("dragging");const H=mapbox.clientHeight,cur=sheet.getBoundingClientRect().height/H;y0=null;
+    if(Math.abs(dy)<6){setSheet(sheet.dataset.state==="full"?"peek":sheet.dataset.state==="peek"?"half":"full");return}
+    let bestS="half",bd=9;for(const s in SH){const d=Math.abs(SH[s]-cur);if(d<bd){bd=d;bestS=s}}setSheet(bestS)};
+  h.addEventListener("pointerup",end);h.addEventListener("pointercancel",end);
+})();
+$("q").addEventListener("focus",()=>{if(mobile())setSheet("full")});
+
+// ---------- chips e filtros ----------
+["405","RU","Biblioteca","Médico","Carteirinha","Xérox","DCE","Wi-Fi"].forEach(s=>{
+  const c=document.createElement("button");c.className="chip";c.type="button";c.textContent=s;
+  c.onclick=()=>{$("q").value=s;sel=null;render(true)};$("chips").appendChild(c)});
+Object.entries(CAT).forEach(([k,v])=>{const b=document.createElement("button");b.type="button";b.setAttribute("aria-pressed","true");b.textContent=v;
+  b.onclick=()=>{active.has(k)?active.delete(k):active.add(k);b.setAttribute("aria-pressed",active.has(k));render()};$("filters").appendChild(b)});
+
+// ---------- busca ----------
+function search(){
+  const q=norm($("q").value.trim());
+  const nums=(q.match(/\d+/g)||[]).map(Number);
+  const words=q.replace(/\d+/g," ").split(/\s+/).filter(w=>w&&!["sala","salas","bloco","de","do","da","o","a","onde","fica","e"].includes(w));
+  const bloco=/bloco/.test(q)&&nums.length?String(nums[0]):null;
+  return entries.filter(e=>{
+    if(!active.has(e.b[1]))return false;
+    if(bloco)return e.b[0]===bloco;
+    if(nums.length){const n=nums[0],r=e.range;if(!r||n<r[0]||n>r[1])return false}
+    return words.every(w=>w.length<=3?new RegExp("\\b"+w+"\\b").test(e.hay):e.hay.includes(w));
+  }).map((e,i)=>{const t=words.join(" "),nm=norm([e.b[0],e.b[2],e.b[6]||""].join(" "));
+    const sc=!t?2:(norm(e.b[0])===t||norm(e.b[6]||"")===t)?0:words.every(w=>nm.includes(w))?1:2;return[sc,i,e]})
+   .sort((x,y)=>x[0]-y[0]||x[1]-y[1]).map(x=>x[2]);
+}
+function pick(id,floor=null){sel={b:id,floor};if(mobile())setSheet("half");render(true);$("scroll").scrollTop=0}
+function render(move,auto=true){
+  const res=search(),q=$("q").value.trim(),n=(q.match(/\d+/)||[])[0];
+  if(auto&&!sel&&q&&res.length)sel={b:res[0].b[0],floor:res[0].floor};
+  // lista
+  const ul=$("results");ul.innerHTML="";
+  $("count").textContent=q?`${res.length} ${res.length===1?"lugar encontrado":"lugares encontrados"} para “${q}”`:`Todos os lugares (${res.length})`;
+  if(!res.length){const li=document.createElement("li");li.className="empty";
+    li.textContent=n&&!/bloco/i.test(q)?`Nenhum bloco tem a sala ${n}. As salas do campus vão de 1 a 482.`:`Nada encontrado para “${q}”. Tente o curso, a sigla do setor (PREG, PRAE) ou o serviço (xérox, cantina, RU).`;ul.appendChild(li)}
+  res.forEach(e=>{
+    const li=document.createElement("li"),bt=document.createElement("button");bt.type="button";
+    if(sel&&sel.b===e.b[0]&&sel.floor===e.floor)bt.className="on";
+    const meta=[isBlock(e.b)?"Bloco "+e.b[0]:null,isBlock(e.b)?FL[e.floor]:null,rng(e.range)].filter(Boolean).join(" · ");
+    const title=n&&e.range&&!/bloco/i.test(q)?`Sala ${n}`:e.items.slice(0,3).join(", ")+(e.items.length>3?` e mais ${e.items.length-3}`:"");
+    bt.innerHTML=`<span class="pinb${isBlock(e.b)?"":" tagb"}"><span>${esc(e.b[0])}</span></span><span class="r-title">${esc(title)}</span><span class="r-meta">${esc(meta||e.b[2])}</span>`;
+    bt.onclick=()=>pick(e.b[0],e.floor);
+    li.appendChild(bt);ul.appendChild(li)});
+  // mapa
+  const hit=new Set(res.map(e=>e.b[0]));
+  B.forEach(b=>{const o=els[b[0]],on=!!sel&&sel.b===b[0];o.g.classList.toggle("sel",on);o.pin.classList.toggle("sel",on);if(on)gPins.appendChild(o.pin);
+    o.pin.classList.toggle("dim",!!q&&!hit.has(b[0])&&!on)});
+  const b=sel&&B.find(x=>x[0]===sel.b);
+  const path=showRoute(b);
+  renderDetail(b,path,n);
+  if(move){
+    if(b&&path){const xs=path.map(p=>p[0]).concat([b[5][0],b[5][0]+b[5][2]]),ys=path.map(p=>p[1]).concat([b[5][1]-40,b[5][1]+b[5][3]]);
+      const r={x:Math.min(...xs),y:Math.min(...ys),w:Math.max(...xs)-Math.min(...xs),h:Math.max(...ys)-Math.min(...ys)};goTo(frame(r,30))}
+    else goTo(frame(CORE,10));
+  }
+  try{history.replaceState(null,"",b?"#bloco-"+b[0].toLowerCase():location.pathname)}catch(_){}
+}
+function infoHTML(b){
+  const I=INFO[b[0]];if(!I)return"";
+  let h='<section class="info" aria-label="Informações úteis">';
+  if(b[0]==="RU"){const [k,t]=ruStatus();h+=`<p class="status ${k}"><span></span>${t}</p>`}
+  const rows=(t,r)=>r?`<h3>${t}</h3><dl>${r.map(([a,c])=>`<dt>${esc(a)}</dt><dd>${esc(c)}</dd>`).join("")}</dl>`:"";
+  h+=rows("Funcionamento",I.hours)+rows("Refeições",I.meals);
+  if(I.notes)h+=`<h3>Bom saber</h3><ul>${I.notes.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`;
+  if(I.contact)h+=`<h3>Contato</h3><dl>${I.contact.map(([a,c])=>`<dt>${esc(a)}</dt><dd><span class="sel-text">${esc(c)}</span></dd>`).join("")}</dl>`;
+  return h+`<p class="src">Fonte: ${esc(I.src)}</p></section>`;
+}
+function renderDetail(b,path,n){
+  const d=$("detail");
+  if(!b){d.hidden=true;d.innerHTML="";return}
+  d.hidden=false;
+  const floors=b[4];
+  const maxF=Math.max(...floors.map(f=>f[0]));
+  let lv="";
+  for(let fl=maxF;fl>=0;fl--){const f=floors.find(x=>x[0]===fl);
+    const on=sel.floor===fl||(sel.floor===null&&floors.length===1);
+    const win="<i></i>".repeat(4);
+    lv+=`<div class="lvl${on?" on":""}"><div class="slab">${win}</div><div class="txt"><div class="fl">${FL[fl]}<b>${esc(rng(f?(f[1]||(floors.length===1?b[3]:null)):null))}</b></div>${f?`<ul>${f[2].map(i=>`<li>${esc(i)}</li>`).join("")}</ul>`:`<ul><li>Sem informação</li></ul>`}</div></div>`}
+  const where=sel.floor!==null&&floors.length>1?` no ${FL[sel.floor].toLowerCase()}`:"";
+  d.innerHTML=`<div class="dhead"><span class="pinb${isBlock(b)?"":" tagb"}"><span>${esc(b[0])}</span></span>
+    <div><h2>${esc(label(b))}</h2><p class="sub">${esc(isBlock(b)?b[2]:CAT[b[1]])}${b[3]?" · "+esc(rng(b[3])):""}</p></div>
+    <button type="button" id="back">Voltar</button></div>
+    <div class="routeline"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><circle cx="4" cy="18" r="3" fill="var(--route)"/><path d="M4 18 C 4 8, 18 14, 18 4" stroke="var(--route)" stroke-width="2.5" fill="none" stroke-dasharray="2 4" stroke-linecap="round"/></svg>
+    <span>Caminho desenhado a partir da <b>entrada principal</b> (Av. São Sebastião)${where?`. Suba até o <b>${esc(FL[sel.floor].toLowerCase())}</b>`:""}.</span></div>
+    <div class="corte" aria-label="Andares do prédio"><div class="roof"></div>${lv}<div class="ground"></div></div>${infoHTML(b)}`;
+  $("back").onclick=()=>{sel=null;if(mobile())setSheet("half");render(true,false)};
+}
+$("q").addEventListener("input",()=>{sel=null;clearTimeout(window._t);window._t=setTimeout(()=>render(true),250)});
+$("q").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();$("q").blur();if(mobile())setSheet("half")}});
+$("clear").onclick=()=>{$("q").value="";sel=null;$("q").focus();render(true)};
+
+// início: direto num bloco pelo endereço (#bloco-23) ou com a busca de exemplo
+const h=(location.hash.match(/^#bloco-(\w+)$/i)||[])[1];
+const hb=h&&B.find(b=>b[0].toLowerCase()===h.toLowerCase());
+if(hb){$("q").value="";sel={b:hb[0],floor:null}}
+vb=frame(CORE,10);applyVB();
+requestAnimationFrame(()=>{vb=frame(CORE,10);applyVB();render(true)});
+</script>
+
+<script>if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
+</body>
+</html>
