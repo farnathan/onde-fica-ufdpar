@@ -1,6 +1,6 @@
 # Onde fica? · UFDPar
 
-Mapa interativo do Campus Ministro Reis Velloso (UFDPar) para ajudar calouros a se localizar.
+Mapa interativo do campus da UFDPar para ajudar calouros a se localizar.
 Digite o número da sala, o curso, o setor ou o serviço e veja o bloco, o andar e o caminho desde a entrada principal.
 
 **Protótipo independente, não oficial.** Dados e base do mapa a partir do mapa "Localize-se!" da Coordenadoria de
