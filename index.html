@@ -186,7 +186,7 @@ label.q{font-family:var(--display);font-weight:800;font-size:.85rem;letter-spaci
       <div class="scroll" id="scroll">
         <label class="q" for="q">Procure sala, curso, setor ou serviço</label>
         <div class="searchbox">
-          <input id="q" type="search" autocomplete="off" enterkeyhint="search" placeholder="Ex.: 405, Pedagogia, xérox, PRAE" value="sala 405">
+          <input id="q" type="search" autocomplete="off" enterkeyhint="search" placeholder="Ex.: 405, Pedagogia, RU" value="">
           <button id="clear" type="button">Limpar</button>
         </div>
         <p class="hint">O número da sala no seu horário já diz o bloco e o andar.</p>
@@ -269,7 +269,7 @@ function ruStatus(){
 // ponta de cada pino oficial e centro de cada etiqueta oficial (unidades da planta)
 const PIN={23:[1260,315],22:[1290,374],24:[1517,316],25:[1557,397],21:[1290,452],26:[1557,554],20:[1292,551],19:[1293,632],17:[1217,773],16:[1316,749],15:[1266,815],14:[1215,890],18:[1116,907],13:[1211,967],12:[1309,967],11:[1211,1070],10:[1310,1072],9:[1471,768],8:[1566,776],7:[1514,837],6:[1466,918],5:[1566,909],4:[1515,997],3:[1468,1065],2:[1566,1065],1:[1477,1151]};
 const TAG={RU:[1556,630],BC:[1385,807],QE:[1593,451],EA:[952,704]};
-const CORE={x:1000,y:240,w:690,h:980}, ALL={x:820,y:180,w:1040,h:1110};
+const CORE={x:1000,y:240,w:690,h:980}, ALL={x:830,y:200,w:960,h:1090};
 
 const norm=s=>s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/-/g,"");
 const isBlock=b=>/^\d+$/.test(b[0]);
@@ -389,7 +389,8 @@ function goTo(t){
 function zoomAt(f,px,py){
   const cw=mapbox.clientWidth,ch=mapbox.clientHeight;
   const ux=vb.x+px/cw*vb.w,uy=vb.y+py/ch*vb.h;
-  let w=Math.min(1500,Math.max(140,vb.w*f));const k=w/vb.w;
+  const maxW=Math.max(ALL.w,ALL.h*cw/ch)*1.15;
+  let w=Math.min(maxW,Math.max(140,vb.w*f));const k=w/vb.w;
   vb={x:ux-(ux-vb.x)*k,y:uy-(uy-vb.y)*k,w,h:vb.h*k};applyVB();
 }
 const ptrs=new Map();let moved=0,last=null,pinch=null;
@@ -407,7 +408,7 @@ function tap(fn){if(moved<8)fn()}
 const center=()=>{const cw=mapbox.clientWidth,ch=mapbox.clientHeight,occ=occluded();return [cw/2,(ch-occ)/2]};
 $("zin").onclick=()=>zoomAt(.7,...center());
 $("zout").onclick=()=>zoomAt(1.4,...center());
-$("zfit").onclick=()=>goTo(frame(CORE,10));
+$("zfit").onclick=()=>goTo(frame(ALL,10));
 new ResizeObserver(()=>{const cw=mapbox.clientWidth,ch=mapbox.clientHeight;if(!cw||!ch)return;const cy=vb.y+vb.h/2;vb.h=vb.w*ch/cw;vb.y=cy-vb.h/2;applyVB()}).observe(mapbox);
 
 // ---------- painel inferior (celular) ----------
@@ -473,9 +474,9 @@ function render(move,auto=true){
   if(move){
     if(b&&path){const xs=path.map(p=>p[0]).concat([b[5][0],b[5][0]+b[5][2]]),ys=path.map(p=>p[1]).concat([b[5][1]-40,b[5][1]+b[5][3]]);
       const r={x:Math.min(...xs),y:Math.min(...ys),w:Math.max(...xs)-Math.min(...xs),h:Math.max(...ys)-Math.min(...ys)};goTo(frame(r,30))}
-    else goTo(frame(CORE,10));
+    else goTo(frame(ALL,10));
   }
-  try{history.replaceState(null,"",b?"#bloco-"+b[0].toLowerCase():location.pathname)}catch(_){}
+  try{const want=b?"#bloco-"+b[0].toLowerCase():"";if(location.hash!==want)history.replaceState(null,"",want||location.pathname+location.search)}catch(_){}
 }
 function infoHTML(b){
   const I=INFO[b[0]];if(!I)return"";
@@ -515,8 +516,10 @@ $("clear").onclick=()=>{$("q").value="";sel=null;$("q").focus();render(true)};
 const h=(location.hash.match(/^#bloco-(\w+)$/i)||[])[1];
 const hb=h&&B.find(b=>b[0].toLowerCase()===h.toLowerCase());
 if(hb){$("q").value="";sel={b:hb[0],floor:null}}
-vb=frame(CORE,10);applyVB();
-requestAnimationFrame(()=>{vb=frame(CORE,10);applyVB();render(true)});
+vb=frame(ALL,10);applyVB();
+requestAnimationFrame(()=>{vb=frame(ALL,10);applyVB();render(!!hb)});
+addEventListener("hashchange",()=>{const k=(location.hash.match(/^#bloco-(\w+)$/i)||[])[1],t=k&&B.find(b=>b[0].toLowerCase()===k.toLowerCase());
+  if(t&&!(sel&&sel.b===t[0])){$("q").value="";sel={b:t[0],floor:null};render(true)}});
 </script>
 
 <script>if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
