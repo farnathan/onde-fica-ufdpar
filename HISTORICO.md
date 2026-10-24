@@ -81,6 +81,8 @@ Basta digitar o número que está no horário ("405") para saber bloco e andar (
 - **v1.6.1:** manchas sob os pinos. A limpeza antiga (TELEA) deixava um borrão com o formato do pino oficial apagado, visível acima de cada pino novo.
   Nova limpeza: cópia de amostras do próprio telhado (13 blocos) e preenchimento guiado por estrutura (7 blocos). **20 de 26 blocos sem mancha**;
   os Blocos 7, 14, 18, 21, 22 e 24 continuam com o borrão, porque os dois métodos novos pioravam esses casos.
+- **v1.7.2:** contornos de destaque refeitos com a planta limpa. O Bloco 14 e a Biblioteca Central tinham bordas tortas (o recorte
+  tinha sido feito com as manchas); agora seguem o telhado. Também ficaram retos os Blocos 1, 22 e 23 e o alto da Escola de Aplicação.
 - **v1.7.1:** mais manchas removidas usando o **contorno real dos prédios no OpenStreetMap** como guia (Blocos 14, 22 e 24, 7 etiquetas e 5 ícones).
   Cada contorno é encaixado na borda visível do desenho antes de preencher. Continuam com mancha: Blocos 7, 18 e 21 e três áreas pequenas.
 - **v1.7:** identidade visual da UFDPar (cores e tipografia do manual de 2026), fonte hospedada no próprio site (sem Google Fonts), novo ícone e nova imagem de prévia dos links.
@@ -218,11 +220,13 @@ Pasta `ferramentas/` (requer `pip install opencv-python-headless numpy`; `exempl
 | `limpar_planta.py` | Recorta a planta da imagem oficial, detecta e guarda os ícones, apaga pinos, etiquetas e ícones (*inpainting*: TELEA como base; cópia de amostras nos telhados contínuos e preenchimento guiado por estrutura nos pinos que cobriam bordas, só nos blocos das listas `REFAZER` e `ESTRUTURA`), deixa transparente a área fora da ilustração e estende a avenida | `saida/planta-campus.webp`, `dados/icones.json`, `dados/planta-limpa.png` |
 | `contorno_osm.py` | Módulo do `limpar_planta.py`: lê os prédios do OpenStreetMap, encaixa cada contorno na borda do desenho e preenche a mancha com a textura de cada lado (lista `CONTORNO`) | (usado pelo `limpar_planta.py`) |
 | `contornos.py` | Recorta o contorno do telhado de 11 prédios pela cor (branco ou telha) | `dados/contornos.json` (constante `OUTLINE`) |
+| `ajustar_contornos.py` | Corrige, depois do `contornos.py`, o Bloco 14, a Biblioteca e a Escola de Aplicação | `dados/contornos.json` |
 | `georreferencia.py` | Ajusta a planta às coordenadas reais pelos prédios do OpenStreetMap (mínimos quadrados) | `dados/georef.json` (constante `GEO`) |
 
 Os três foram conferidos: reproduzem exatamente a planta e os contornos publicados.
-**Atenção (v1.6.1):** o `contornos.json` publicado foi gerado com a planta antiga. Rodar o `contornos.py` com a planta nova muda o contorno do
-Bloco 14 (a borda do Auditório desce sobre os Blocos 12 e 13, errado) e mexe 6 unidades num canto da BC. Por isso o `contornos.json` não foi regerado.
+**Contornos (v1.7.2):** rodar `contornos.py` e depois `ajustar_contornos.py`, que corrige o Bloco 14 e a Biblioteca (o recorte pela cor vaza para
+telhados vizinhos; o ajuste usa perfis de linhas e colunas dentro da caixa do prédio no OpenStreetMap) e tira o resto de etiqueta do alto da
+Escola de Aplicação. O resultado em `dados/contornos.json` vai para a constante `OUTLINE` do `index.html`.
 A matriz recalculada difere da usada no site em menos de 1 m, porque o site usou caixas arredondadas.
 
 **Aprendizados do processamento:**

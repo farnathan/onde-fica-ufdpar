@@ -5,6 +5,14 @@ A versão mais recente fica no topo.
 
 ---
 
+## Versão 1.7.2 · 24/10/2026
+
+**Correções**
+- O destaque do Auditório (Bloco 14) e da Biblioteca Central agora segue o telhado. Antes as bordas saíam tortas e invadiam a calçada e os prédios vizinhos.
+- Os destaques dos Blocos 1, 22 e 23 e da Escola de Aplicação também ficaram retos.
+
+---
+
 ## Versão 1.7.1 · 24/10/2026
 
 **Correções**
