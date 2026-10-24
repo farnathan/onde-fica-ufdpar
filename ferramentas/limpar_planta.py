@@ -119,7 +119,7 @@ CONTORNO=[  # (x, y, modo, tons, encaixe local, x mínimo, o que é)
   (1590,439,'vertical',False,False,None,'etiqueta da Quadra'),(1130,451,'vertical',False,False,None,'ícone junto ao muro'),
   (1388,795,'vertical',True,True,None,'etiqueta da Biblioteca'),(1316,870,'vertical',True,True,None,'etiqueta do Auditório'),
   (1431,272,'cross',True,True,None,'etiqueta junto ao Bloco 23'),(1557,621,'cross',True,True,None,'etiqueta do RU'),
-  (1572,1120,'cross',True,True,None,'etiqueta do Núcleo de Pesquisa'),(1149,854,'cross',True,True,1150,'Bloco 14 (só o lado do Auditório)'),
+  (1572,1120,'cross',True,True,None,'etiqueta do Núcleo de Pesquisa'),(1149,854,'cross',True,True,1182,'Bloco 14 (só o telhado do Auditório)'),
   (954,692,'cross',True,True,None,'etiqueta da Escola de Aplicação'),(1130,717,'cross',True,True,None,'ícone na calçada'),
   (1033,944,'cross',True,True,None,'ícone na calçada'),(1573,950,'cross',True,True,None,'ícone entre os Blocos 2 e 4'),
   (1135,1094,'cross',True,True,None,'ícone na calçada')]
