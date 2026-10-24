@@ -7,14 +7,15 @@ O que faz, em ordem:
 3. Apaga pinos vermelhos, etiquetas laranja e ícones, reconstruindo o fundo (inpainting). Preserva a pista vermelha/azul do Espaço de Convivência.
    O TELEA (borra a partir da borda) é a base. Por cima dele, onde fica melhor:
    - telhados de textura contínua: cópia de amostras do próprio telhado (exemplar.py);
-   - pinos que cobriam uma borda: preenchimento guiado por estrutura (estrutura.py).
-   As listas REFAZER e ESTRUTURA foram conferidas bloco a bloco; os demais ficam com o TELEA.
+   - pinos que cobriam uma borda: preenchimento guiado por estrutura (estrutura.py);
+   - manchas sobre prédios do OpenStreetMap: contorno real como guia (contorno_osm.py).
+   As listas REFAZER, ESTRUTURA e CONTORNO foram conferidas uma a uma; o resto fica com o TELEA.
 4. Torna transparente tudo o que fica fora da ilustração, alisando o contorno, e estende a Av. São Sebastião até a borda esquerda.
 5. Salva planta-campus.webp (qualidade 80, com transparência) e duas imagens auxiliares para o script de contornos.
 
 Coordenadas: 1 unidade da planta = 4 px da imagem oficial; a planta vai de x 760-1860 e y 160-1300.
 Uso:  python3 limpar_planta.py      (roda a partir da pasta ferramentas/)
-Requer: pip install opencv-python-headless numpy   (exemplar.py e estrutura.py ficam nesta mesma pasta)
+Requer: pip install opencv-python-headless numpy   (exemplar.py, estrutura.py e contorno_osm.py ficam nesta mesma pasta)
 Demora uns 4 minutos.
 """
 import os
@@ -103,6 +104,41 @@ for b in ESTRUTURA:
   hole=lab[y0:y1,x0:x1]==i;outros=(lab[y0:y1,x0:x1]>0)&~hole
   sub,_m=preencher(c[y0:y1,x0:x1].copy(),hole,outros)
   c[y0:y1,x0:x1][hole]=sub[hole];print('pino',b,'estrutura')
+# ---- manchas sobre prédios mapeados: contorno real do OpenStreetMap como guia (contorno_osm.py) ----
+# Cada área é achada por um ponto dentro dela (unidades da planta). Conferidas uma a uma; ficaram de fora
+# porque pioravam: Bloco 7 (sem contorno no OSM), Blocos 18 e 21, a área perto do Bloco 23 (1164,279)
+# e dois ícones na calçada (1389,990 e 1417,1025).
+from contorno_osm import carregar_predios,encaixar,preencher_osm
+PRED=carregar_predios(os.path.join(AQUI,'fontes','campus-openstreetmap.osm'),_html,X0,Y0,PPU,c.shape[:2])
+LIVRE=mm==0;DESLOC=[]
+for p in PRED:  # encaixe de cada contorno na borda visível do desenho
+  a0=np.maximum(p.min(0)-60,0).astype(int);a1=np.minimum(p.max(0)+60,[c.shape[1],c.shape[0]]).astype(int)
+  DESLOC.append(encaixar(c[a0[1]:a1[1],a0[0]:a1[0]],p-a0,LIVRE[a0[1]:a1[1],a0[0]:a1[0]]))
+CONTORNO=[  # (x, y, modo, tons, encaixe local, x mínimo, o que é)
+  (1517,284,'vertical',False,False,None,'Bloco 24'),(1290,342,'vertical',False,False,None,'Bloco 22'),
+  (1590,439,'vertical',False,False,None,'etiqueta da Quadra'),(1130,451,'vertical',False,False,None,'ícone junto ao muro'),
+  (1388,795,'vertical',True,True,None,'etiqueta da Biblioteca'),(1316,870,'vertical',True,True,None,'etiqueta do Auditório'),
+  (1431,272,'cross',True,True,None,'etiqueta junto ao Bloco 23'),(1557,621,'cross',True,True,None,'etiqueta do RU'),
+  (1572,1120,'cross',True,True,None,'etiqueta do Núcleo de Pesquisa'),(1149,854,'cross',True,True,1150,'Bloco 14 (só o lado do Auditório)'),
+  (954,692,'cross',True,True,None,'etiqueta da Escola de Aplicação'),(1130,717,'cross',True,True,None,'ícone na calçada'),
+  (1033,944,'cross',True,True,None,'ícone na calçada'),(1573,950,'cross',True,True,None,'ícone entre os Blocos 2 e 4'),
+  (1135,1094,'cross',True,True,None,'ícone na calçada')]
+for n,(x,y,modo,tons,local,xmin,nome) in enumerate(CONTORNO):
+  i=lab[u(y-Y0),u(x-X0)]
+  if i==0:print('área',nome,'não encontrada');continue
+  cv2.setRNGSeed(1000+n)  # resultado igual a cada execução, independente da ordem
+  ys,xs=np.nonzero(lab==i);M=150
+  y0,y1=max(ys.min()-M,0),min(ys.max()+M,c.shape[0]);x0,x1=max(xs.min()-M,0),min(xs.max()+M,c.shape[1])
+  hole=lab[y0:y1,x0:x1]==i;outros=(lab[y0:y1,x0:x1]>0)&~hole
+  pols=[]
+  for p,d in zip(PRED,DESLOC):
+    q=p+d-(x0,y0)
+    if q[:,0].max()<0 or q[:,1].max()<0 or q[:,0].min()>x1-x0 or q[:,1].min()>y1-y0:continue
+    if local:q=q+encaixar(c[y0:y1,x0:x1],q,LIVRE[y0:y1,x0:x1],raio=12,passo=1)
+    pols.append(q)
+  sub,_m=preencher_osm(c[y0:y1,x0:x1].copy(),hole,outros,pols,modo=modo,tons=tons)
+  if xmin is not None:hole&=(np.arange(x0,x1)[None,:]>=u(xmin-X0))
+  c[y0:y1,x0:x1][hole]=sub[hole];print('contorno',nome)
 
 json.dump([[t,float(x),float(y),float(w),float(h)] for t,x,y,w,h in ICONS],open(os.path.join(AQUI,'dados','icones.json'),'w'));print('ícones encontrados:',len(ICONS))
 # fora da ilustração = brancos ligados à borda
