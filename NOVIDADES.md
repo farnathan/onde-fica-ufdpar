@@ -5,6 +5,16 @@ A versão mais recente fica no topo.
 
 ---
 
+## Versão 1.8 · 24/10/2026
+
+**Nova interface**
+- Visual de diretório institucional: a lista de prédios e serviços vem primeiro, organizada pelo número do bloco.
+- No celular, as abas **Lista** e **Mapa** substituem o painel que subia de baixo. Ao tocar num pino, aparece um cartão com o lugar e o botão "Ver detalhes".
+- A página de cada lugar mostra o caminho de navegação (Início › Busca › lugar), uma ficha com bloco, andar, salas e distância, o que tem no andar e uma tabela com os outros andares.
+- Ao buscar um curso ou setor com vários resultados, a lista aparece primeiro. O detalhe abre sozinho só quando há um resultado ou quando a busca é o número de uma sala.
+
+---
+
 ## Versão 1.7.2 · 24/10/2026
 
 **Correções**

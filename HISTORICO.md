@@ -81,6 +81,9 @@ Basta digitar o número que está no horário ("405") para saber bloco e andar (
 - **v1.6.1:** manchas sob os pinos. A limpeza antiga (TELEA) deixava um borrão com o formato do pino oficial apagado, visível acima de cada pino novo.
   Nova limpeza: cópia de amostras do próprio telhado (13 blocos) e preenchimento guiado por estrutura (7 blocos). **20 de 26 blocos sem mancha**;
   os Blocos 7, 14, 18, 21, 22 e 24 continuam com o borrão, porque os dois métodos novos pioravam esses casos.
+- **v1.8:** nova interface na **direção D, "Diretório"** (escolhida entre 4 direções desenhadas no canvas "Onde fica? — direções de design"):
+  lista primeiro, cabeçalho "UFDPar | Onde fica?", abas Lista/Mapa no celular no lugar do painel arrastável, detalhe com caminho de navegação,
+  ficha (bloco, andar, salas, distância) e tabela de andares no lugar do corte do prédio.
 - **v1.7.2:** contornos de destaque refeitos com a planta limpa. O Bloco 14 e a Biblioteca Central tinham bordas tortas (o recorte
   tinha sido feito com as manchas); agora seguem o telhado. Também ficaram retos os Blocos 1, 22 e 23 e o alto da Escola de Aplicação.
 - **v1.7.1:** mais manchas removidas usando o **contorno real dos prédios no OpenStreetMap** como guia (Blocos 14, 22 e 24, 7 etiquetas e 5 ícones).
@@ -95,7 +98,8 @@ Basta digitar o número que está no horário ("405") para saber bloco e andar (
 
 | Tema | Decisão |
 |---|---|
-| Cabeçalho | Nome por extenso: "Universidade Federal do Delta do Parnaíba (UFDPar)". **Não** usar "Campus Ministro Reis Velloso". |
+| Cabeçalho | Desde a v1.8 (direção D): barra "UFDPar \| Onde fica?"; o nome por extenso "Universidade Federal do Delta do Parnaíba (UFDPar)" fica na abertura da página. **Não** usar "Campus Ministro Reis Velloso". |
+| Interface (v1.8) | Direção D, "Diretório": lista por bloco como tela principal; no celular, abas **Lista \| Mapa** (tocar num pino abre um cartão no mapa; "Ver detalhes" volta à lista). A busca só abre o detalhe sozinha quando há um único resultado ou é um número de sala; senão mostra a lista. |
 | Fundo do mapa | **Branco**, inclusive no modo escuro. O campus aparece como "ilha" de contorno irregular (alisado). |
 | Abertura | O site abre mostrando o campus inteiro, sem bloco selecionado. `#bloco-XX` só aparece quando alguém escolhe um lugar. |
 | Base do mapa | Ilustração oficial "Localize-se!", limpa, com pinos, etiquetas e ícones redesenhados por cima. |
@@ -182,7 +186,8 @@ A distância usa 0,293 m por unidade, e o tempo considera 1,2 m/s. O caminho é 
 - Zoom e arrasto próprios (roda do mouse, pinça, botões). O centro da vista não sai da área do campus.
 - Os pinos têm tamanho fixo na tela. Com o zoom bem afastado, viram bolinhas numeradas, e as etiquetas dos setores só aparecem ao aproximar.
 - Camadas (estacionamentos, motos e bicicletas, alimentação, nomes dos setores) ficam salvas no navegador (`localStorage`).
-- No celular deitado (altura até 500 px), o painel fica ao lado do mapa.
+- No celular em pé, Lista e Mapa são abas (o mapa continua montado por baixo, só escondido, para o enquadramento funcionar).
+- No celular deitado (altura até 500 px), a lista fica ao lado do mapa, sem abas.
 
 ### Outros
 - **Status do RU** ("servindo / aberto / fechado") pelo horário de Parnaíba (UTC−3). **Não considera feriados nem recesso.**
