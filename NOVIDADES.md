@@ -5,6 +5,14 @@ A versão mais recente fica no topo.
 
 ---
 
+## Versão 1.7.1 · 24/10/2026
+
+**Correções**
+- Menos manchas no mapa: o telhado do Auditório (Bloco 14) e os Blocos 22 e 24 ficaram limpos, assim como as áreas sob 7 etiquetas e 5 ícones. A reconstrução agora usa o contorno real de cada prédio, tirado do OpenStreetMap.
+- Ainda há mancha nos Blocos 7, 18 e 21 e em três áreas pequenas.
+
+---
+
 ## Versão 1.7 · 24/10/2026
 
 **Visual**

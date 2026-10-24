@@ -396,7 +396,7 @@ const mk=(t,a,p=svg)=>{const e=document.createElementNS(NS,t);for(const k in a)e
 const gBase=mk("g",{}),gBld=mk("g",{}),gRoute=mk("g",{}),gIco=mk("g",{}),gStatic=mk("g",{class:"statics"}),gPins=mk("g",{});
 // base: ilustração oficial "Localize-se!" vetorizada, sem os pinos e etiquetas (redesenhados abaixo, clicáveis)
 mk("rect",{x:600,y:60,width:1400,height:1400,fill:"var(--paper)"},gBase);
-mk("image",{href:"planta-campus.webp?v=1.6.1",x:760,y:160,width:1100,height:1140,preserveAspectRatio:"none"},gBase);
+mk("image",{href:"planta-campus.webp?v=1.7.1",x:760,y:160,width:1100,height:1140,preserveAspectRatio:"none"},gBase);
 const els={};
 B.forEach(b=>{
   const [x,y,w,h]=b[5];

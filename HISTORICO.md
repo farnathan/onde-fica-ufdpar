@@ -81,6 +81,8 @@ Basta digitar o número que está no horário ("405") para saber bloco e andar (
 - **v1.6.1:** manchas sob os pinos. A limpeza antiga (TELEA) deixava um borrão com o formato do pino oficial apagado, visível acima de cada pino novo.
   Nova limpeza: cópia de amostras do próprio telhado (13 blocos) e preenchimento guiado por estrutura (7 blocos). **20 de 26 blocos sem mancha**;
   os Blocos 7, 14, 18, 21, 22 e 24 continuam com o borrão, porque os dois métodos novos pioravam esses casos.
+- **v1.7.1:** mais manchas removidas usando o **contorno real dos prédios no OpenStreetMap** como guia (Blocos 14, 22 e 24, 7 etiquetas e 5 ícones).
+  Cada contorno é encaixado na borda visível do desenho antes de preencher. Continuam com mancha: Blocos 7, 18 e 21 e três áreas pequenas.
 - **v1.7:** identidade visual da UFDPar (cores e tipografia do manual de 2026), fonte hospedada no próprio site (sem Google Fonts), novo ícone e nova imagem de prévia dos links.
 - **v1.6.2:** privacidade. GPS desliga sozinho (fora do campus, 10 min, página fora da tela) e com um segundo toque; busca sem
   resultado não manda mais o texto ao contador; aviso de privacidade no rodapé. Testado em Chromium sem tela com posição simulada (25 verificações).
@@ -127,7 +129,7 @@ nem a API do OpenStreetMap. O caminho que funciona é o usuário baixar os arqui
 ### Arquivos publicados
 | Arquivo | Papel |
 |---|---|
-| `index.html` | A página inteira: estilos, dados e lógica, sem bibliotecas externas. Só as fontes vêm do Google Fonts. |
+| `index.html` | A página inteira: estilos, dados e lógica, sem bibliotecas externas. A fonte fica em `tipografia/` (desde a v1.7, sem Google Fonts). |
 | `planta-campus.webp` | Base do mapa: ilustração oficial limpa, com transparência fora do campus (3300 × 3420 px, cerca de 320 KB). |
 | `sw.js` | Service worker: guarda a página e a planta para funcionar com sinal fraco. Só cuida de arquivos do próprio site. |
 | `manifest.webmanifest`, `icone.svg`, `icone-180.png` | Instalação na tela inicial do celular. |
@@ -214,6 +216,7 @@ Pasta `ferramentas/` (requer `pip install opencv-python-headless numpy`; `exempl
 | Script | O que faz | Saída |
 |---|---|---|
 | `limpar_planta.py` | Recorta a planta da imagem oficial, detecta e guarda os ícones, apaga pinos, etiquetas e ícones (*inpainting*: TELEA como base; cópia de amostras nos telhados contínuos e preenchimento guiado por estrutura nos pinos que cobriam bordas, só nos blocos das listas `REFAZER` e `ESTRUTURA`), deixa transparente a área fora da ilustração e estende a avenida | `saida/planta-campus.webp`, `dados/icones.json`, `dados/planta-limpa.png` |
+| `contorno_osm.py` | Módulo do `limpar_planta.py`: lê os prédios do OpenStreetMap, encaixa cada contorno na borda do desenho e preenche a mancha com a textura de cada lado (lista `CONTORNO`) | (usado pelo `limpar_planta.py`) |
 | `contornos.py` | Recorta o contorno do telhado de 11 prédios pela cor (branco ou telha) | `dados/contornos.json` (constante `OUTLINE`) |
 | `georreferencia.py` | Ajusta a planta às coordenadas reais pelos prédios do OpenStreetMap (mínimos quadrados) | `dados/georef.json` (constante `GEO`) |
 
@@ -267,7 +270,7 @@ essa pasta ficou desatualizada. **Não rode o atalho**, porque ele tentaria envi
 - O status do RU não considera feriados nem recesso.
 - O horário do Serviço Médico é de cerca de 2022.
 - Ainda não há dados de banheiros, rampas e elevadores por bloco.
-- Ainda há mancha dos pinos oficiais apagados nos Blocos 7, 14, 18, 21, 22 e 24.
+- Ainda há mancha dos pinos oficiais apagados nos Blocos 7, 18 e 21, numa área perto do Bloco 23 e em dois ícones da calçada central.
 
 **Do processo**
 - **Gravação no computador do usuário:** a ferramenta do Claude reaproveitou versões antigas quando o mesmo caminho de origem era usado de novo.
@@ -281,8 +284,8 @@ essa pasta ficou desatualizada. **Não rode o atalho**, porque ele tentaria envi
 ## 10. Pendências e próximos passos
 
 **Prioridade alta**
-- [ ] **Manchas restantes** (Blocos 7, 14, 18, 21, 22 e 24): retoque manual com carimbo/correção (ex.: Photopea) em `planta-campus.webp`,
-      ou a ilustração sem pinos da UFDPar. Se retocar à mão, subir a versão `?v=` no `index.html` e no `sw.js`.
+- [ ] **Manchas restantes** (Blocos 7, 18 e 21 e três áreas pequenas): retoque manual com carimbo/correção (ex.: Photopea) em `planta-campus.webp`,
+      ou a ilustração sem pinos da UFDPar. O Bloco 7 também melhoraria se fosse desenhado no OpenStreetMap. Se retocar à mão, subir a versão `?v=` no `index.html` e no `sw.js`.
 - [ ] **Criar a conta no GoatCounter** (`onde-fica-ufdpar`). Sem ela, o site não conta nada.
 - [ ] **Placas com QR code por bloco:** PDF para gráfica, com links `#bloco-XX`.
 - [ ] **Página de proposta para a UFDPar** (Comunicação Institucional, PREG, PRAE): problema, site, números de uso, o que precisam fornecer e o pedido da ilustração sem pinos.
