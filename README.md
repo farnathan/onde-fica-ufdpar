@@ -11,6 +11,7 @@ e do documento "UFDPar no Censo da Educação Superior".
 - `index.html` — a página (dados dos blocos ficam no início do `<script>`)
 - `planta-campus.webp` — base do mapa (ilustração oficial limpa, sem pinos; 332 KB)
 - `sw.js`, `manifest.webmanifest`, `icone.svg` — funcionamento offline e instalação no celular
+- `tipografia/` — fonte Hind (licença livre OFL, em `OFL.txt`), usada no lugar da Frutiger do manual de identidade da UFDPar
 
 ## Publicar
 Site estático: basta servir a pasta. No GitHub Pages: Settings → Pages → Deploy from a branch → `main` / raiz.

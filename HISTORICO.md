@@ -81,6 +81,7 @@ Basta digitar o número que está no horário ("405") para saber bloco e andar (
 - **v1.6.1:** manchas sob os pinos. A limpeza antiga (TELEA) deixava um borrão com o formato do pino oficial apagado, visível acima de cada pino novo.
   Nova limpeza: cópia de amostras do próprio telhado (13 blocos) e preenchimento guiado por estrutura (7 blocos). **20 de 26 blocos sem mancha**;
   os Blocos 7, 14, 18, 21, 22 e 24 continuam com o borrão, porque os dois métodos novos pioravam esses casos.
+- **v1.7:** identidade visual da UFDPar (cores e tipografia do manual de 2026), fonte hospedada no próprio site (sem Google Fonts), novo ícone e nova imagem de prévia dos links.
 - **v1.6.2:** privacidade. GPS desliga sozinho (fora do campus, 10 min, página fora da tela) e com um segundo toque; busca sem
   resultado não manda mais o texto ao contador; aviso de privacidade no rodapé. Testado em Chromium sem tela com posição simulada (25 verificações).
 
@@ -99,6 +100,8 @@ Basta digitar o número que está no horário ("405") para saber bloco e andar (
 | SIGAA | Fora do escopo (inviável obter a lista de turmas). |
 | "Meu horário" | Em segundo plano. |
 | Identidade | Protótipo independente, não oficial. O README e o rodapé deixam isso claro. |
+| Identidade visual (v1.7) | Cores e tipografia do **Manual de Identidade Visual da UFDPar, 2ª ed. (2026)**: marinho `#2C4A6E` (Pantone 647C) na estrutura, azul `#0D7CC0` (3005C) em etiquetas e rota, vermelho `#B73336` (485C) nos pinos, dourado `#E0B14E` (7407C) só em detalhe, borda ativa e aviso. Fonte Frutiger (licenciada) substituída na web pela **Hind** (livre, OFL), hospedada em `tipografia/`. Cantos de 4-6 px, divisórias de 1 px, sem sombras pesadas, pesos 400/700. |
+| Brasão | **Não usar** sem autorização institucional (manual, seção 2: uso indevido gera processo administrativo). A classe `.brasao` já tem as regras do manual (proporção travada, sem efeitos, área de reserva) para quando houver autorização e o arquivo oficial. |
 
 ---
 

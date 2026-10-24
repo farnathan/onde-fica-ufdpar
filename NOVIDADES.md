@@ -5,6 +5,16 @@ A versão mais recente fica no topo.
 
 ---
 
+## Versão 1.7 · 24/10/2026
+
+**Visual**
+- Novas cores e tipografia, seguindo o Manual de Identidade Visual da UFDPar: azul-marinho institucional no cabeçalho com filete dourado, pinos no vermelho do manual e etiquetas no azul do manual.
+- Letra mais sóbria e legível (Hind, da mesma família de desenho da Frutiger usada pela universidade), cantos menos arredondados e sem sombras pesadas.
+- A fonte agora vem do próprio site: abre mais rápido e não depende mais do Google.
+- Novo ícone e nova imagem de prévia quando o link é compartilhado.
+
+---
+
 ## Versão 1.6.2 · 24/10/2026
 
 **Privacidade**
