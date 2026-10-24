@@ -5,6 +5,34 @@ A versão mais recente fica no topo.
 
 ---
 
+## Versão 1.6 · 24/10/2026
+
+**Correções**
+- Buscas sem conteúdo útil ("onde fica", uma letra só) não selecionam mais o Bloco 1 sozinhas. A página pede para continuar digitando.
+- A busca já encontra resultados com 2 ou 3 letras: "bib" acha a Biblioteca, "pre" acha a PREG.
+- Ao buscar uma palavra que está no nome do prédio, ele aparece antes dos que só a mencionam.
+- Depois de "Ver todos os lugares", o botão "Limpar" e o novo "← Voltar ao início" retornam à tela inicial.
+- O mapa não pode mais ser arrastado para fora da tela.
+- O ponto azul do GPS tem tamanho fixo na tela; antes ficava quase invisível com o zoom afastado.
+- As atualizações do GPS não redesenham mais o painel inteiro.
+- A etiqueta da Biblioteca não cobre mais o pino do Bloco 15.
+
+**Celular**
+- Com o celular deitado, o painel de busca fica ao lado do mapa, em vez de cobrir a maior parte dele.
+- Em telas pequenas e com o zoom afastado, as etiquetas laranja e os ícones ficam menores e não escondem os pinos.
+
+**Acessibilidade**
+- A busca é o primeiro item ao navegar com Tab (antes eram 36 Tabs até ela).
+- Esc fecha o painel de camadas.
+- O leitor de tela anuncia só um resumo curto ("Bloco 23, 2º andar selecionado no mapa"), em vez de reler o painel inteiro.
+- RU, Biblioteca, Quadra e Escola de Aplicação ganharam ícones na lista, no lugar das siglas.
+
+**Por dentro**
+- O modo offline deixou de interferir em arquivos de outros sites (fontes, contador).
+- Planta antiga em SVG (2,9 MB) removida do repositório.
+
+---
+
 ## Versão 1.5 · 23/10/2026
 
 **Mapa mais limpo**
