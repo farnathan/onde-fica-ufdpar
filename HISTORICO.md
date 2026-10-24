@@ -78,6 +78,9 @@ Basta digitar o número que está no horário ("405") para saber bloco e andar (
 ### 24/10/2026
 - **v1.6:** revisão completa com testes automáticos e 14 correções (busca, arrastar o mapa, GPS, celular deitado, acessibilidade).
 - **Este documento** e a pasta `ferramentas/` com os scripts de processamento.
+- **v1.6.1:** manchas sob os pinos. A limpeza antiga (TELEA) deixava um borrão com o formato do pino oficial apagado, visível acima de cada pino novo.
+  Nova limpeza: cópia de amostras do próprio telhado (13 blocos) e preenchimento guiado por estrutura (7 blocos). **20 de 26 blocos sem mancha**;
+  os Blocos 7, 14, 18, 21, 22 e 24 continuam com o borrão, porque os dois métodos novos pioravam esses casos.
 
 ---
 
@@ -197,22 +200,27 @@ A distância usa 0,293 m por unidade, e o tempo considera 1,2 m/s. O caminho é 
 
 ## 7. Ferramentas de processamento
 
-Pasta `ferramentas/` (requer `pip install opencv-python-headless numpy`):
+Pasta `ferramentas/` (requer `pip install opencv-python-headless numpy`; `exemplar.py` e `estrutura.py` são módulos usados pelo `limpar_planta.py`):
 
 | Script | O que faz | Saída |
 |---|---|---|
-| `limpar_planta.py` | Recorta a planta da imagem oficial, detecta e guarda os ícones, apaga pinos, etiquetas e ícones (*inpainting*), deixa transparente a área fora da ilustração e estende a avenida | `saida/planta-campus.webp`, `dados/icones.json`, `dados/planta-limpa.png` |
+| `limpar_planta.py` | Recorta a planta da imagem oficial, detecta e guarda os ícones, apaga pinos, etiquetas e ícones (*inpainting*: TELEA como base; cópia de amostras nos telhados contínuos e preenchimento guiado por estrutura nos pinos que cobriam bordas, só nos blocos das listas `REFAZER` e `ESTRUTURA`), deixa transparente a área fora da ilustração e estende a avenida | `saida/planta-campus.webp`, `dados/icones.json`, `dados/planta-limpa.png` |
 | `contornos.py` | Recorta o contorno do telhado de 11 prédios pela cor (branco ou telha) | `dados/contornos.json` (constante `OUTLINE`) |
 | `georreferencia.py` | Ajusta a planta às coordenadas reais pelos prédios do OpenStreetMap (mínimos quadrados) | `dados/georef.json` (constante `GEO`) |
 
 Os três foram conferidos: reproduzem exatamente a planta e os contornos publicados.
+**Atenção (v1.6.1):** o `contornos.json` publicado foi gerado com a planta antiga. Rodar o `contornos.py` com a planta nova muda o contorno do
+Bloco 14 (a borda do Auditório desce sobre os Blocos 12 e 13, errado) e mexe 6 unidades num canto da BC. Por isso o `contornos.json` não foi regerado.
 A matriz recalculada difere da usada no site em menos de 1 m, porque o site usou caixas arredondadas.
 
 **Aprendizados do processamento:**
 - Os ícones precisam ser detectados na imagem **original**, antes de apagar os pinos. Senão a limpeza "puxa" a cor dos ícones vizinhos e deixa manchas cor-de-rosa.
 - A primeira camada da vetorização em SVG (bege `#C8C6BB`) também é a cor das calçadas. Trocá-la apaga as calçadas.
 - No miolo cinza (Blocos 2 a 17), telhados e pátios têm a mesma cor, então o recorte automático não separa os prédios.
-- Ficam manchas leves sob os pinos apagados. Estão cobertas pelos pinos novos. A solução definitiva é pedir à Comunicação Institucional o arquivo original da ilustração **sem pinos**.
+- O TELEA borra a partir da borda: em telhado com textura, vira uma mancha com o formato do pino apagado, maior que o pino novo.
+  Copiar amostras na **vertical** (mesmas colunas) preserva telhas e cumeeiras; copiar livremente ou em cruz entorta as linhas e puxa grama para o telhado.
+  Onde o pino cobria uma borda, é preciso primeiro reconstruir onde fica cada área (telhado, grama, calçada) e só depois preencher cada uma com a própria textura.
+- A solução definitiva continua sendo pedir à Comunicação Institucional o arquivo original da ilustração **sem pinos**.
 
 ---
 
@@ -250,6 +258,7 @@ essa pasta ficou desatualizada. **Não rode o atalho**, porque ele tentaria envi
 - O status do RU não considera feriados nem recesso.
 - O horário do Serviço Médico é de cerca de 2022.
 - Ainda não há dados de banheiros, rampas e elevadores por bloco.
+- Ainda há mancha dos pinos oficiais apagados nos Blocos 7, 14, 18, 21, 22 e 24.
 
 **Do processo**
 - **Gravação no computador do usuário:** a ferramenta do Claude reaproveitou versões antigas quando o mesmo caminho de origem era usado de novo.
@@ -263,6 +272,8 @@ essa pasta ficou desatualizada. **Não rode o atalho**, porque ele tentaria envi
 ## 10. Pendências e próximos passos
 
 **Prioridade alta**
+- [ ] **Manchas restantes** (Blocos 7, 14, 18, 21, 22 e 24): retoque manual com carimbo/correção (ex.: Photopea) em `planta-campus.webp`,
+      ou a ilustração sem pinos da UFDPar. Se retocar à mão, subir a versão `?v=` no `index.html` e no `sw.js`.
 - [ ] **Criar a conta no GoatCounter** (`onde-fica-ufdpar`). Sem ela, o site não conta nada.
 - [ ] **Placas com QR code por bloco:** PDF para gráfica, com links `#bloco-XX`.
 - [ ] **Página de proposta para a UFDPar** (Comunicação Institucional, PREG, PRAE): problema, site, números de uso, o que precisam fornecer e o pedido da ilustração sem pinos.

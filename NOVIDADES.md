@@ -5,6 +5,14 @@ A versão mais recente fica no topo.
 
 ---
 
+## Versão 1.6.1 · 24/10/2026
+
+**Correções**
+- Acabaram as manchas acima dos pinos em 20 dos 26 blocos. Eram restos dos pinos do mapa oficial, que foram apagados da ilustração e deixavam um borrão no telhado. Agora o telhado é refeito com a textura dele mesmo.
+- Ainda há mancha nos Blocos 7, 14, 18, 21, 22 e 24. Fica para uma próxima versão.
+
+---
+
 ## Versão 1.6 · 24/10/2026
 
 **Correções**
