@@ -140,6 +140,7 @@ label.q{font-family:var(--display);font-weight:800;font-size:.85rem;letter-spaci
 @keyframes pulse{50%{stroke-width:6}}
 #toast{position:absolute;left:50%;transform:translateX(-50%);top:12px;z-index:4;max-width:min(92%,420px);background:var(--ink);color:var(--surface);font-size:.88rem;padding:8px 14px;border-radius:10px;box-shadow:0 4px 14px rgb(0 0 0 / .25);text-align:center}
 #gps{display:grid;place-items:center}
+#gps[aria-pressed="true"]{color:#1A73E8}
 .info{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
 .info h3{font-family:var(--display);font-weight:800;font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:12px 0 4px}
 .info h3:first-of-type{margin-top:4px}
@@ -257,7 +258,7 @@ label.q{font-family:var(--display);font-weight:800;font-size:.85rem;letter-spaci
         <div class="filters" id="filters" aria-label="Filtrar por tipo"></div>
         <p id="count" aria-live="polite"></p>
         <ul id="results"></ul>
-        <p class="note">Dados do mapa oficial “Localize-se!” (Comunicação Institucional UFDPar). Caminhos aproximados, traçados pelos passeios do campus. Coordenadas ajustadas com dados © colaboradores do <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>. Contamos visitas e buscas de forma anônima, sem cookies. <a href="https://github.com/farnathan/onde-fica-ufdpar/blob/main/NOVIDADES.md" target="_blank" rel="noopener">Novidades</a></p>
+        <p class="note">Dados do mapa oficial “Localize-se!” (Comunicação Institucional UFDPar). Caminhos aproximados, traçados pelos passeios do campus. Coordenadas ajustadas com dados © colaboradores do <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>. Sua localização só é usada neste aparelho, para mostrar onde você está: não é enviada nem guardada, e o GPS desliga sozinho. Contamos visitas e buscas de forma anônima, sem cookies. <a href="https://github.com/farnathan/onde-fica-ufdpar/blob/main/NOVIDADES.md" target="_blank" rel="noopener">Novidades</a></p>
       </div>
     </aside>
     <div class="mapbox" id="mapbox">
@@ -267,7 +268,7 @@ label.q{font-family:var(--display);font-weight:800;font-size:.85rem;letter-spaci
         <button type="button" id="zout" aria-label="Afastar">−</button>
         <button type="button" id="zfit" aria-label="Ver o campus inteiro">⤢</button>
         <button type="button" id="lyrbtn" aria-label="Camadas do mapa" aria-expanded="false" aria-controls="layers"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2 1.5 6.5 10 11l8.5-4.5z" fill="currentColor"/><path d="M2.5 10 10 14l7.5-4M2.5 13.5 10 17.5l7.5-4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></button>
-        <button type="button" id="gps" aria-label="Mostrar onde estou"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="4" fill="currentColor"/><circle cx="10" cy="10" r="7.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M10 0v3M10 17v3M0 10h3M17 10h3" stroke="currentColor" stroke-width="1.8"/></svg></button>
+        <button type="button" id="gps" aria-label="Mostrar onde estou" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="4" fill="currentColor"/><circle cx="10" cy="10" r="7.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M10 0v3M10 17v3M0 10h3M17 10h3" stroke="currentColor" stroke-width="1.8"/></svg></button>
       </div>
       <div id="toast" role="status" hidden></div>
       <div id="layers" class="layers" role="group" aria-label="Camadas do mapa" hidden></div>
@@ -576,23 +577,38 @@ $("zin").onclick=()=>zoomAt(.7,...center());
 $("zout").onclick=()=>zoomAt(1.4,...center());
 $("zfit").onclick=()=>goTo(frame(ALL,10));
 // ---------- GPS ("onde estou") ----------
-let watch=null,toastT=0;
+// A posição fica só neste aparelho: serve para desenhar o ponto azul e a rota, não é enviada nem guardada.
+// O GPS desliga sozinho ao sair do campus ou depois de GPS_MIN minutos, e pausa enquanto a página não está na tela.
+let watch=null,toastT=0,gpsOn=false,gpsT=0;
+const GPS_MIN=10;
 function toast(t){const e=$("toast");e.textContent=t;e.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>e.hidden=true,5000)}
+function gpsWatch(){
+  if(watch!==null)navigator.geolocation.clearWatch(watch);watch=null;
+  try{watch=navigator.geolocation.watchPosition(gpsOk,gpsErr,{enableHighAccuracy:true,maximumAge:5000,timeout:15000})}catch(_){gpsErr()}}
+function stopLocate(msg){
+  if(watch!==null)navigator.geolocation.clearWatch(watch);watch=null;gpsOn=false;clearTimeout(gpsT);
+  const g=$("gps");g.setAttribute("aria-pressed","false");g.setAttribute("aria-label","Mostrar onde estou");
+  if(me){me=null;meG.style.display="none";if(sel){const b=B.find(x=>x[0]===sel.b);if(b)renderDetail(b,showRoute(b))}}
+  if(msg)toast(msg)}
 function locate(){
   if(!("geolocation" in navigator)){toast("Este navegador não informa a localização.");return}
-  toast("Procurando sua posição…");
-  const ok=pos=>{const{latitude:la,longitude:lo,accuracy:ac}=pos.coords,[x,y]=llToPlan(la,lo);
-    if(x<ALL.x-60||x>ALL.x+ALL.w+60||y<ALL.y-60||y>ALL.y+ALL.h+60){me=null;meG.style.display="none";
-      toast("Você está fora do campus. Use “Como chegar” para abrir a rota no Google Maps.");render(false);return}
+  gpsOn=true;clearTimeout(gpsT);
+  gpsT=setTimeout(()=>stopLocate(`Localização desligada depois de ${GPS_MIN} minutos. Toque no botão de localização para ligar de novo.`),GPS_MIN*60000);
+  const g=$("gps");g.setAttribute("aria-pressed","true");g.setAttribute("aria-label","Desligar a localização");
+  toast("Procurando sua posição…");gpsWatch()}
+const gpsOk=pos=>{const{latitude:la,longitude:lo,accuracy:ac}=pos.coords,[x,y]=llToPlan(la,lo);
+    if(x<ALL.x-60||x>ALL.x+ALL.w+60||y<ALL.y-60||y>ALL.y+ALL.h+60){
+      stopLocate("Você está fora do campus. Use “Como chegar” para abrir a rota no Google Maps.");render(false);return}
     const first=!me;me={x,y,acc:ac};meG.style.display="";meDot.setAttribute("cx",x);meDot.setAttribute("cy",y);
     meAcc.setAttribute("cx",x);meAcc.setAttribute("cy",y);meAcc.setAttribute("r",Math.min(200,ac/GEO.mpu));
     if(first){toast(`Posição encontrada (precisão de ${Math.round(ac)} m).`);if(!sel)goTo(frame({x:x-150,y:y-150,w:300,h:300},20))}
     if(first)render(!!sel,false);else if(sel){const b=B.find(x=>x[0]===sel.b);renderDetail(b,showRoute(b))}};
-  const err=e=>{toast(e&&e.code===1?"Permita o acesso à localização no navegador para ver onde você está.":"Não foi possível obter sua localização agora.")};
-  if(watch!==null)navigator.geolocation.clearWatch(watch);
-  try{watch=navigator.geolocation.watchPosition(ok,err,{enableHighAccuracy:true,maximumAge:5000,timeout:15000})}catch(_){err()}
-}
-$("gps").onclick=()=>{track("acao/onde-estou","Ação: onde estou");locate()};
+const gpsErr=e=>{if(e&&e.code===1)stopLocate("Permita o acesso à localização no navegador para ver onde você está.");
+  else toast("Não foi possível obter sua localização agora.")};
+$("gps").onclick=()=>{if(gpsOn){stopLocate("Localização desligada.");return}track("acao/onde-estou","Ação: onde estou");locate()};
+// fora da tela (outra aba, celular bloqueado): pausa o GPS; ao voltar, retoma se ainda estiver ligado
+document.addEventListener("visibilitychange",()=>{if(!gpsOn)return;
+  if(document.hidden){if(watch!==null)navigator.geolocation.clearWatch(watch);watch=null}else if(watch===null)gpsWatch()});
 new ResizeObserver(()=>{const cw=mapbox.clientWidth,ch=mapbox.clientHeight;if(!cw||!ch)return;const cy=vb.y+vb.h/2;vb.h=vb.w*ch/cw;vb.y=cy-vb.h/2;applyVB()}).observe(mapbox);
 
 // ---------- painel inferior (celular) ----------
@@ -676,14 +692,18 @@ if(STATS.on){const sc=document.createElement("script");sc.async=true;sc.src="htt
   sc.dataset.goatcounter=`https://${STATS.code}.goatcounter.com/count`;document.head.appendChild(sc)}
 function track(path,title){if(!STATS.on)return;try{window.goatcounter&&window.goatcounter.count&&window.goatcounter.count({path,title:title||path,event:true})}catch(_){}}
 let trackT=0,lastTracked="";
-function trackSearch(){clearTimeout(trackT);trackT=setTimeout(()=>{const q=norm($("q").value.trim()).replace(/[^a-z0-9 ]/g,"").slice(0,40).trim();
-  if(q.length>=2&&q!==lastTracked){lastTracked=q;track("busca/"+q.replace(/ +/g,"-"),"Busca: "+q)}},1500)}
+// Privacidade: o texto da busca só é contado quando acha algum lugar. Busca sem resultado é contada sem o texto,
+// para não registrar o que a pessoa digitou (pode ser um nome, por exemplo).
+let lastRes={q:"",n:0,typing:true};
+function trackSearch(){clearTimeout(trackT);trackT=setTimeout(()=>{const raw=$("q").value.trim(),q=norm(raw).replace(/[^a-z0-9 ]/g,"").slice(0,40).trim();
+  if(q.length<2||q===lastTracked||lastRes.q!==raw||lastRes.typing)return;lastTracked=q;
+  if(lastRes.n>0)track("busca/"+q.replace(/ +/g,"-"),"Busca: "+q);else track("busca/sem-resultado","Busca sem resultado")},1500)}
 function pick(id,floor=null){track("lugar/"+String(id).toLowerCase(),"Lugar: "+id);sel={b:id,floor};if(mobile())setSheet("half");render(true);$("scroll").scrollTop=0}
 function render(move,auto=true){
   const res=search(),q=$("q").value.trim(),n=(q.match(/\d+/)||[])[0];
   if(auto&&!sel&&q&&res.length)sel={b:res[0].b[0],floor:res[0].floor};
   if(q)showAll=false;
-  const typing=searchEmpty;$("tip").hidden=true;
+  const typing=searchEmpty;$("tip").hidden=true;lastRes={q,n:res.length,typing};
   const home=(!q&&!showAll)||typing;$("home").hidden=!home;$("results").hidden=home;$("count").hidden=home;$("filters").hidden=!q||typing;
   if(home)renderHome(typing);
   // lista

@@ -5,6 +5,16 @@ A versão mais recente fica no topo.
 
 ---
 
+## Versão 1.6.2 · 24/10/2026
+
+**Privacidade**
+- O GPS agora desliga sozinho: quando você sai do campus, depois de 10 minutos ou enquanto a página não está na tela (volta quando você reabre).
+- Um segundo toque no botão de localização desliga o GPS. O botão fica azul enquanto ele está ligado.
+- Buscas que não acham nenhum lugar são contadas sem o texto digitado.
+- O rodapé explica que a sua localização só é usada no seu aparelho e não é enviada nem guardada.
+
+---
+
 ## Versão 1.6.1 · 24/10/2026
 
 **Correções**

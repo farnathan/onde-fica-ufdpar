@@ -81,6 +81,8 @@ Basta digitar o número que está no horário ("405") para saber bloco e andar (
 - **v1.6.1:** manchas sob os pinos. A limpeza antiga (TELEA) deixava um borrão com o formato do pino oficial apagado, visível acima de cada pino novo.
   Nova limpeza: cópia de amostras do próprio telhado (13 blocos) e preenchimento guiado por estrutura (7 blocos). **20 de 26 blocos sem mancha**;
   os Blocos 7, 14, 18, 21, 22 e 24 continuam com o borrão, porque os dois métodos novos pioravam esses casos.
+- **v1.6.2:** privacidade. GPS desliga sozinho (fora do campus, 10 min, página fora da tela) e com um segundo toque; busca sem
+  resultado não manda mais o texto ao contador; aviso de privacidade no rodapé. Testado em Chromium sem tela com posição simulada (25 verificações).
 
 ---
 
@@ -178,7 +180,11 @@ A distância usa 0,293 m por unidade, e o tempo considera 1,2 m/s. O caminho é 
 ### Outros
 - **Status do RU** ("servindo / aberto / fechado") pelo horário de Parnaíba (UTC−3). **Não considera feriados nem recesso.**
 - **Contador:** GoatCounter, código `onde-fica-ufdpar`. Só liga em `*.github.io` e conta visitas, buscas, lugares, "Como chegar" e "Onde estou",
-  sem cookies.
+  sem cookies. O texto da busca só é contado quando acha algum lugar; busca sem resultado vira `busca/sem-resultado`, sem o texto
+  (a pessoa pode ter digitado um nome).
+- **Privacidade do GPS:** a posição é usada só no aparelho (ponto azul e rota), nunca enviada nem guardada; o contador registra
+  apenas que o botão foi usado. O GPS desliga sozinho ao sair do campus ou depois de 10 minutos (`GPS_MIN`), pausa quando a página
+  sai da tela e volta ao reabrir; um segundo toque no botão desliga. O rodapé avisa isso ao usuário.
 - **Links diretos:** `…/onde-fica-ufdpar/#bloco-23`, `#bloco-ru`, `#bloco-bc`, `#bloco-qe`, `#bloco-ea`. Servem para os QR codes.
 
 ---
