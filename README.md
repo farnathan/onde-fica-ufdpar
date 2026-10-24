@@ -16,5 +16,7 @@ e do documento "UFDPar no Censo da Educação Superior".
 Site estático: basta servir a pasta. No GitHub Pages: Settings → Pages → Deploy from a branch → `main` / raiz.
 Abrir direto num bloco: `…/#bloco-23`.
 
-## Novidades
-Veja o histórico de atualizações em [NOVIDADES.md](NOVIDADES.md).
+## Documentação
+- [HISTORICO.md](HISTORICO.md): histórico do projeto, decisões, fontes, como o site funciona, como atualizar e pendências.
+- [NOVIDADES.md](NOVIDADES.md): notas de cada versão.
+- `ferramentas/`: scripts para regenerar a planta, os contornos dos prédios e a georreferência.
