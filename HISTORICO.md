@@ -81,6 +81,11 @@ Basta digitar o número que está no horário ("405") para saber bloco e andar (
 - **v1.6.1:** manchas sob os pinos. A limpeza antiga (TELEA) deixava um borrão com o formato do pino oficial apagado, visível acima de cada pino novo.
   Nova limpeza: cópia de amostras do próprio telhado (13 blocos) e preenchimento guiado por estrutura (7 blocos). **20 de 26 blocos sem mancha**;
   os Blocos 7, 14, 18, 21, 22 e 24 continuam com o borrão, porque os dois métodos novos pioravam esses casos.
+- **v1.9 (desfeita):** mapa redesenhado em vetor (`mapa-campus.svg`, gerado da ilustração). O contorno de vários prédios ficou ruim e o usuário
+  pediu para voltar à v1.8 no mesmo dia. O trabalho continua no branch `mapa-vetorial`, para retomar quando houver as plantas dos prédios.
+- **v1.10:** acessibilidade. **Caminho a pé em texto, passo a passo** (gerado da rota: trechos, viradas, distâncias e prédios de referência),
+  atalho "Pular para o mapa", mapa operável pelo teclado (setas, + e −, 0), botões de zoom com 44 px, ordem dos títulos e região das abas.
+  Teste automático axe (WCAG 2.1 AA): 0 problemas no computador e no celular.
 - **v1.8:** nova interface na **direção D, "Diretório"** (escolhida entre 4 direções desenhadas no canvas "Onde fica? — direções de design"):
   lista primeiro, cabeçalho "UFDPar | Onde fica?", abas Lista/Mapa no celular no lugar do painel arrastável, detalhe com caminho de navegação,
   ficha (bloco, andar, salas, distância) e tabela de andares no lugar do corte do prédio.
@@ -298,8 +303,14 @@ essa pasta ficou desatualizada. **Não rode o atalho**, porque ele tentaria envi
 - [ ] **Criar a conta no GoatCounter** (`onde-fica-ufdpar`). Sem ela, o site não conta nada.
 - [ ] **Placas com QR code por bloco:** PDF para gráfica, com links `#bloco-XX`.
 - [ ] **Página de proposta para a UFDPar** (Comunicação Institucional, PREG, PRAE): problema, site, números de uso, o que precisam fornecer e o pedido da ilustração sem pinos.
-- [ ] **Instruções da rota em texto**, passo a passo.
+- [x] **Instruções da rota em texto**, passo a passo (v1.10).
 - [ ] **Botão "Informar erro"** em cada lugar.
+
+**Acessibilidade (dados; dependem de coleta)**
+- [ ] Por prédio: entrada acessível, rampa, escada, elevador, banheiro acessível, piso tátil, vagas para pessoas com deficiência.
+      Parceiro natural: NIA – Núcleo de Inclusão e Acessibilidade (PRAE, Bloco 18). O usuário vai solicitar as **plantas dos prédios**.
+- [ ] Com esses dados: opção "evitar escadas" (rota acessível) e camada de acessibilidade no mapa.
+- [ ] Citar na proposta o eMAG (Modelo de Acessibilidade em Governo Eletrônico) e a Lei Brasileira de Inclusão (Lei 13.146/2015).
 
 **Dados (dependem de coleta)**
 - [ ] Desenhar os Blocos 2 a 9 e a Escola de Aplicação no Google Earth (projeto KML, um polígono com nome por prédio) para melhorar o GPS.

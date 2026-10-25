@@ -95,7 +95,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 svg#map{width:100%;height:100%;display:block;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
 svg#map.drag{cursor:grabbing}
 .zoom{position:absolute;top:12px;right:max(12px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:6px;z-index:3}
-.zoom button{width:42px;height:42px;border-radius:var(--radius);border:1px solid var(--line);background:var(--surface);color:var(--ink);font:700 1.25rem var(--display);cursor:pointer;box-shadow:var(--shadow)}
+.zoom button{width:44px;height:44px;border-radius:var(--radius);border:1px solid var(--line);background:var(--surface);color:var(--ink);font:700 1.25rem var(--display);cursor:pointer;box-shadow:var(--shadow)}
 .zoom button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 /* painel */
 .sheet{background:var(--surface);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0;z-index:5}
@@ -223,8 +223,17 @@ label.q{font-weight:600;font-size:.98rem;color:var(--ink);display:block;margin-b
 .layers[hidden],.tip[hidden]{display:none!important}
 .scale span{font:700 .72rem var(--body);color:var(--ink);font-variant-numeric:tabular-nums}
 .home section{margin-top:20px}
-.home h3{font:700 1.08rem var(--display);color:var(--ink);margin:0 0 4px}
+.home h2{font:700 1.08rem var(--display);color:var(--ink);margin:0 0 4px}
 .home section>ul{border-top:1px solid var(--ink)}
+/* atalho para o mapa: só aparece quando recebe o foco do teclado */
+.skip{position:absolute;left:8px;top:-80px;z-index:30;background:var(--surface);color:var(--ink);border:2px solid var(--focus);border-radius:var(--radius-sm);padding:10px 14px;font-weight:700;text-decoration:none}
+.skip:focus{top:8px}
+svg#map:focus-visible{outline:3px solid var(--focus);outline-offset:-3px}
+/* caminho a pé, passo a passo */
+.passos{margin:6px 0 0;padding:0;list-style:none;counter-reset:passo}
+.passos li{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start;padding:8px 0;border-top:1px solid var(--line);line-height:1.4}
+.passos li::before{counter-increment:passo;content:counter(passo);width:26px;height:26px;border-radius:50%;background:var(--primary);color:var(--primary-ink);font-weight:700;font-size:.85rem;display:grid;place-items:center}
+.passos li:last-child{border-bottom:1px solid var(--line)}
 .home ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
 
 
@@ -280,13 +289,14 @@ label.q{font-weight:600;font-size:.98rem;color:var(--ink);display:block;margin-b
 </style>
 
 <div class="app" id="app" data-view="lista">
+  <a class="skip" href="#map" id="skipmap">Pular para o mapa</a>
   <header class="bar">
     <span class="brand">UFDPar</span><span class="sep" aria-hidden="true"></span><span class="appname">Onde fica?</span>
     <span class="proto">Protótipo</span>
   </header>
-  <div class="viewtabs" role="group" aria-label="Ver como">
+  <nav class="viewtabs" aria-label="Ver como">
     <button type="button" id="tabList" aria-pressed="true">Lista</button><button type="button" id="tabMap" aria-pressed="false">Mapa</button>
-  </div>
+  </nav>
   <main class="stage">
     <aside class="sheet" id="sheet" aria-label="Busca e informações">
       <div class="scroll" id="scroll">
@@ -310,7 +320,7 @@ label.q{font-weight:600;font-size:.98rem;color:var(--ink);display:block;margin-b
       </div>
     </aside>
     <div class="mapbox" id="mapbox">
-      <svg id="map" role="group" aria-label="Planta do campus da UFDPar com blocos numerados. Use a busca para localizar salas e setores." preserveAspectRatio="xMidYMid meet"></svg>
+      <svg id="map" role="group" tabindex="0" aria-label="Planta do campus da UFDPar com blocos numerados. Use a busca para localizar salas e setores. No mapa: setas movem, as teclas mais e menos aproximam e afastam, zero mostra o campus inteiro e Tab percorre os prédios." preserveAspectRatio="xMidYMid meet"></svg>
       <div class="zoom">
         <button type="button" id="zin" aria-label="Aproximar">+</button>
         <button type="button" id="zout" aria-label="Afastar">−</button>
@@ -566,9 +576,9 @@ let showAll=false;
 function renderHome(typing){const h=$("home");
   const tip=typing?'<p class="typing">Continue digitando: o número da sala, o curso ou o nome do setor.</p>':"";
   const status=id=>{if(id!=="RU")return"";const[k,t]=ruStatus();return`<span class="st ${k}"><i></i>${t}</span>`};
-  h.innerHTML=tip+GROUPS.map(g=>`<section><h3>${g.t}</h3><ul>${g.items.map(([id,fl,n,sub])=>{const b=B.find(x=>x[0]===id);
+  h.innerHTML=tip+GROUPS.map(g=>`<section><h2>${g.t}</h2><ul>${g.items.map(([id,fl,n,sub])=>{const b=B.find(x=>x[0]===id);
      return`<li><button type="button" data-id="${id}" data-fl="${fl}">${code(b)}<span class="r-title">${esc(n)}</span><span class="r-meta">${status(id)||esc(sub)}</span>${CHEV}</button></li>`}).join("")}</ul></section>`).join("")
-   +`<section><h3>Salas de aula por curso</h3><div class="courses">${COURSES.map(([n,q])=>`<button type="button" class="chip" data-q="${q}">${n}</button>`).join("")}</div></section>`
+   +`<section><h2>Salas de aula por curso</h2><div class="courses">${COURSES.map(([n,q])=>`<button type="button" class="chip" data-q="${q}">${n}</button>`).join("")}</div></section>`
    +`<button type="button" class="allbtn" id="allbtn">Ver todos os lugares (${entries.length})</button>`;
   h.querySelectorAll("li>button").forEach(bt=>bt.onclick=()=>pick(bt.dataset.id,+bt.dataset.fl));
   h.querySelectorAll(".courses .chip").forEach(c=>c.onclick=()=>{$("q").value=c.dataset.q;sel=null;track("curso/"+c.dataset.q,"Curso: "+c.textContent);render(true)});
@@ -632,6 +642,14 @@ const center=()=>{const cw=mapbox.clientWidth,ch=mapbox.clientHeight,occ=occlude
 $("zin").onclick=()=>zoomAt(.7,...center());
 $("zout").onclick=()=>zoomAt(1.4,...center());
 $("zfit").onclick=()=>goTo(frame(ALL,10));
+// teclado: setas movem, + e − aproximam e afastam, 0 mostra o campus inteiro
+svg.addEventListener("keydown",e=>{if(e.altKey||e.ctrlKey||e.metaKey)return;const st=.15;let ok=true;
+  if(e.key==="ArrowLeft")vb={...vb,x:vb.x-vb.w*st};else if(e.key==="ArrowRight")vb={...vb,x:vb.x+vb.w*st};
+  else if(e.key==="ArrowUp")vb={...vb,y:vb.y-vb.h*st};else if(e.key==="ArrowDown")vb={...vb,y:vb.y+vb.h*st};
+  else if(e.key==="+"||e.key==="=")zoomAt(.7,...center());else if(e.key==="-"||e.key==="_")zoomAt(1.4,...center());
+  else if(e.key==="0")goTo(frame(ALL,10));else ok=false;
+  if(ok){e.preventDefault();applyVB()}});
+$("skipmap").onclick=e=>{e.preventDefault();if(mobile())setView("mapa");svg.focus()};
 // ---------- GPS ("onde estou") ----------
 // A posição fica só neste aparelho: serve para desenhar o ponto azul e a rota, não é enviada nem guardada.
 // O GPS desliga sozinho ao sair do campus ou depois de GPS_MIN minutos, e pausa enquanto a página não está na tela.
@@ -799,6 +817,30 @@ function infoHTML(b){
   if(I.contact)h+=`<h3>Contato</h3><dl>${I.contact.map(([a,c])=>`<dt>${esc(a)}</dt><dd><span class="sel-text">${esc(c)}</span></dd>`).join("")}</dl>`;
   return h+`<p class="src">Fonte: ${esc(I.src)}</p></section>`;
 }
+// ---------- caminho a pé em texto (a partir da rota desenhada no mapa) ----------
+const FEM=new Set(["BC","QE","EA"]);
+const art=(o,pre)=>{const f=FEM.has(o[0]),n=isBlock(o)?label(o):o[2];
+  return ({ao:f?"à ":"ao ",pelo:f?"pela ":"pelo "})[pre]+n};
+function passos(path,b,doGps){
+  if(!path||path.length<2)return[];
+  const segs=[];
+  for(let i=1;i<path.length;i++){const[x0,y0]=path[i-1],[x1,y1]=path[i],L=Math.hypot(x1-x0,y1-y0);if(L<.5)continue;
+    const d=[(x1-x0)/L,(y1-y0)/L],u=segs[segs.length-1];
+    if(u&&u.d[0]*d[0]+u.d[1]*d[1]>.94){u.len+=L;u.b=[x1,y1]}else segs.push({a:[x0,y0],b:[x1,y1],d,len:L})}
+  const giro=(p,q)=>p.d[0]*q.d[1]-p.d[1]*q.d[0];  // y para baixo: positivo = vira à direita
+  let lado="";
+  if(segs.length>1&&segs[segs.length-1].len*GEO.mpu<8){const u=segs.pop(),c=giro(segs[segs.length-1],u);lado=Math.abs(c)<.35?"em frente":c>0?"à sua direita":"à sua esquerda"}
+  const m=v=>{const r=v*GEO.mpu;return r<20?Math.max(5,Math.round(r/5)*5):Math.round(r/10)*10};
+  const dist=(o,x,y)=>{const[rx,ry,rw,rh]=o[5];return Math.hypot(Math.max(rx-x,0,x-(rx+rw)),Math.max(ry-y,0,y-(ry+rh)))};
+  const junto=(x,y)=>{let r=null,bd=25;B.forEach(o=>{if(o===b)return;const d=dist(o,x,y);if(d<bd){bd=d;r=o}});return r};
+  const passa=s=>{let r=null;B.forEach(o=>{if(o===b||isBlock(o))return;for(let t=.2;t<=.8;t+=.1){if(dist(o,s.a[0]+(s.b[0]-s.a[0])*t,s.a[1]+(s.b[1]-s.a[1])*t)<10){r=o;break}}});return r};
+  const out=segs.map((s,i)=>{let t;
+    if(i===0)t=doGps?"Da sua posição, siga":"Da entrada principal (Av. São Sebastião), siga em frente";
+    else{const c=giro(segs[i-1],s),j=junto(s.a[0],s.a[1]);t=`${Math.abs(c)<.35?"Continue":`Vire à ${c>0?"direita":"esquerda"}`}${j?` junto ${art(j,"ao")}`:""} e siga`}
+    const p=passa(s);return`${t} por ${m(s.len)}\u00a0m${p?`, passando ${art(p,"pelo")}`:""}.`});
+  out.push(`Chegue ${art(b,"ao")}${lado&&lado!=="em frente"?`, que fica ${lado}`:""}.`);
+  return out;
+}
 let lastDetail={t:"",s:""};
 function renderDetail(b,path,n){
   const d=$("detail");
@@ -820,6 +862,9 @@ function renderDetail(b,path,n){
   if(q)crumbs.push(`<button type="button" data-go="busca">Busca “${esc(q)}”</button>`);
   crumbs.push(`<span aria-current="page">${esc(title)}</span>`);
   let sec="";
+  const ps=passos(path,b,!!me);
+  if(multi&&fSel&&fSel[0]>0)ps.push(`Suba até o ${FL[fSel[0]].toLowerCase()}.`);
+  if(ps.length)sec+=`<section class="dsec"><h2>Caminho a pé</h2><ol class="passos" role="list">${ps.map(t=>`<li><span>${esc(t)}</span></li>`).join("")}</ol><p class="note">Caminho aproximado pelos passeios do campus. Ainda não temos informação sobre rampas, escadas e elevadores neste prédio.</p></section>`;
   if(fSel)sec+=`<section class="dsec"><h2>${multi?"No "+esc(FL[fSel[0]].toLowerCase()):"O que tem"}</h2><ul>${fSel[2].map(i=>`<li>${esc(i)}</li>`).join("")}</ul></section>`;
   if(multi){const outros=[...floors].sort((x,y)=>y[0]-x[0]).filter(f=>!fSel||f[0]!==fSel[0]);
     sec+=`<table class="floors"><caption>${fSel?"Outros andares":"Andares"}</caption><tbody>${outros.map(f=>`<tr><th scope="row">${esc(FL[f[0]])}</th><td class="num">${esc(rngNum(f[1]))}</td><td>${esc(f[2].join(", "))}</td></tr>`).join("")}</tbody></table>`}

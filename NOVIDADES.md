@@ -5,6 +5,17 @@ A versão mais recente fica no topo.
 
 ---
 
+## Versão 1.10 · 25/10/2026
+
+**Acessibilidade**
+- Cada lugar agora tem o **caminho a pé em texto, passo a passo**, com as viradas, as distâncias e prédios de referência. Funciona com leitor de tela e ajuda quem não consegue usar o mapa.
+- Novo atalho "Pular para o mapa" (primeira tecla Tab).
+- O mapa pode ser usado só com o teclado: setas movem, + e − aproximam e afastam, 0 mostra o campus inteiro.
+- Botões de zoom maiores (44 px), o tamanho mínimo recomendado para toque.
+- O teste automático de acessibilidade (WCAG 2.1 AA) não aponta mais nenhum problema.
+
+---
+
 ## Versão 1.8 · 24/10/2026
 
 **Nova interface**
