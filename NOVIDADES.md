@@ -5,6 +5,16 @@ A versão mais recente fica no topo.
 
 ---
 
+## Versão 1.9 · 25/10/2026
+
+**Mapa novo**
+- O campus foi redesenhado do zero em vetor: prédios, grama, árvores, ruas e calçadas num desenho limpo, com as cores da UFDPar e sem as manchas da ilustração antiga.
+- Fica nítido em qualquer zoom e carrega mais rápido (60 KB no lugar de 342 KB), o que ajuda com o sinal fraco no campus.
+- Telhados brancos (Auditório, Biblioteca, Blocos 19 a 26) e de telha (Blocos 2 a 17) têm tons diferentes, para separar melhor os prédios.
+- A ilustração oficial "Localize-se!" continua disponível: Camadas › Desenho do mapa › Ilustração oficial.
+
+---
+
 ## Versão 1.8 · 24/10/2026
 
 **Nova interface**
