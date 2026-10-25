@@ -213,8 +213,7 @@ label.q{font-weight:600;font-size:.98rem;color:var(--ink);display:block;margin-b
 .tip{position:absolute;z-index:4;pointer-events:none;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius-sm);padding:6px 10px;font-size:.85rem;line-height:1.3;box-shadow:var(--shadow);max-width:260px;display:flex;flex-direction:column}
 .tip span{color:var(--muted);font-size:.8rem}
 .layers{position:absolute;z-index:4;top:12px;right:calc(max(12px,env(safe-area-inset-right,0px)) + 52px);background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);padding:10px 12px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:6px;min-width:200px}
-.layers p{margin:0 0 2px;font:700 .92rem var(--display);color:var(--ink)}
-.layers label+p{margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}
+.layers p{margin:0 0 2px;font:700 .75rem var(--display);text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
 .layers label{display:flex;align-items:center;gap:8px;font-size:.92rem;cursor:pointer}
 .layers label i{width:12px;height:12px;border-radius:2px;display:inline-block}
 .layers input{width:18px;height:18px;accent-color:var(--primary)}
@@ -307,7 +306,7 @@ label.q{font-weight:600;font-size:.98rem;color:var(--ink);display:block;margin-b
         <div class="filters" id="filters" aria-label="Filtrar por tipo"></div>
         <p id="count" aria-live="polite"></p>
         <ul id="results"></ul>
-        <p class="note">Mapa redesenhado a partir do mapa oficial “Localize-se!” (Comunicação Institucional UFDPar), que também pode ser visto em Camadas. Caminhos aproximados, traçados pelos passeios do campus. Coordenadas ajustadas com dados © colaboradores do <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>. Sua localização só é usada neste aparelho, para mostrar onde você está: não é enviada nem guardada, e o GPS desliga sozinho. Contamos visitas e buscas de forma anônima, sem cookies. <a href="https://github.com/farnathan/onde-fica-ufdpar/blob/main/NOVIDADES.md" target="_blank" rel="noopener">Novidades</a></p>
+        <p class="note">Dados do mapa oficial “Localize-se!” (Comunicação Institucional UFDPar). Caminhos aproximados, traçados pelos passeios do campus. Coordenadas ajustadas com dados © colaboradores do <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>. Sua localização só é usada neste aparelho, para mostrar onde você está: não é enviada nem guardada, e o GPS desliga sozinho. Contamos visitas e buscas de forma anônima, sem cookies. <a href="https://github.com/farnathan/onde-fica-ufdpar/blob/main/NOVIDADES.md" target="_blank" rel="noopener">Novidades</a></p>
       </div>
     </aside>
     <div class="mapbox" id="mapbox">
@@ -428,9 +427,7 @@ const mk=(t,a,p=svg)=>{const e=document.createElementNS(NS,t);for(const k in a)e
 const gBase=mk("g",{}),gBld=mk("g",{}),gRoute=mk("g",{}),gIco=mk("g",{}),gStatic=mk("g",{class:"statics"}),gPins=mk("g",{});
 // base: ilustração oficial "Localize-se!" vetorizada, sem os pinos e etiquetas (redesenhados abaixo, clicáveis)
 mk("rect",{x:600,y:60,width:1400,height:1400,fill:"var(--paper)"},gBase);
-// base do mapa: desenho vetorial (padrão) ou a ilustração oficial "Localize-se!" (opção nas camadas)
-const BASE={mapa:"mapa-campus.svg?v=1.9",ilustra:"planta-campus.webp?v=1.7.1"};
-const baseImg=mk("image",{href:BASE.mapa,x:760,y:160,width:1100,height:1140,preserveAspectRatio:"none"},gBase);
+mk("image",{href:"planta-campus.webp?v=1.7.1",x:760,y:160,width:1100,height:1140,preserveAspectRatio:"none"},gBase);
 const els={};
 B.forEach(b=>{
   const [x,y,w,h]=b[5];
@@ -544,14 +541,13 @@ function drawScale(ppu){const mpp=GEO.mpu/ppu,opts=[5,10,20,25,50,100,200,250,50
     tip.style.left=x+"px";tip.style.top=y+"px"});
   svg.addEventListener("pointerleave",()=>tip.hidden=true)})();
 // ---------- camadas liga/desliga ----------
-const LYR_DEF={park:true,moto:true,food:true,tags:true,ilustra:false};let LYR={...LYR_DEF};
+const LYR_DEF={park:true,moto:true,food:true,tags:true};let LYR={...LYR_DEF};
 try{Object.assign(LYR,JSON.parse(localStorage.getItem("ondefica.camadas")||"{}"))}catch(_){}
-function applyLayers(){baseImg.setAttribute("href",LYR.ilustra?BASE.ilustra:BASE.mapa);layerG.park.style.display=LYR.park?"":"none";layerG.moto.style.display=LYR.moto?"":"none";layerG.food.style.display=LYR.food?"":"none";gStatic.style.display=LYR.tags?"":"none";
+function applyLayers(){layerG.park.style.display=LYR.park?"":"none";layerG.moto.style.display=LYR.moto?"":"none";layerG.food.style.display=LYR.food?"":"none";gStatic.style.display=LYR.tags?"":"none";
   document.querySelectorAll("#layers input").forEach(i=>i.checked=!!LYR[i.value]);try{localStorage.setItem("ondefica.camadas",JSON.stringify(LYR))}catch(_){}}
 (()=>{const box=$("layers"),btn=$("lyrbtn");
   box.innerHTML=`<p>Mostrar no mapa</p>`+[["park","Estacionamentos","var(--park)"],["moto","Motos e bicicletas","var(--park)"],["food","Alimentação","var(--food)"],["tags","Nomes dos setores","var(--tag)"]]
-    .map(([k,n,c])=>`<label><input type="checkbox" id="lyr-${k}" value="${k}"><i style="background:${c}"></i>${n}</label>`).join("")
-    +`<p>Desenho do mapa</p><label><input type="checkbox" id="lyr-ilustra" value="ilustra">Ilustração oficial</label>`;
+    .map(([k,n,c])=>`<label><input type="checkbox" id="lyr-${k}" value="${k}"><i style="background:${c}"></i>${n}</label>`).join("");
   box.addEventListener("change",e=>{LYR[e.target.value]=e.target.checked;applyLayers()});
   btn.onclick=()=>{box.hidden=!box.hidden;btn.setAttribute("aria-expanded",!box.hidden)};
   document.addEventListener("pointerdown",e=>{if(!box.hidden&&!box.contains(e.target)&&!btn.contains(e.target)){box.hidden=true;btn.setAttribute("aria-expanded","false")}});

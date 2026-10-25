@@ -81,9 +81,6 @@ Basta digitar o número que está no horário ("405") para saber bloco e andar (
 - **v1.6.1:** manchas sob os pinos. A limpeza antiga (TELEA) deixava um borrão com o formato do pino oficial apagado, visível acima de cada pino novo.
   Nova limpeza: cópia de amostras do próprio telhado (13 blocos) e preenchimento guiado por estrutura (7 blocos). **20 de 26 blocos sem mancha**;
   os Blocos 7, 14, 18, 21, 22 e 24 continuam com o borrão, porque os dois métodos novos pioravam esses casos.
-- **v1.9:** **mapa redesenhado em vetor** (`mapa-campus.svg`, 60 KB no lugar dos 342 KB da ilustração), gerado por `ferramentas/mapa_vetorial.py`
-  a partir da ilustração limpa (telhados pela textura, grama, árvores, asfalto e vias pela cor) e dos contornos do site. Sem nenhuma mancha.
-  A ilustração oficial continua disponível em Camadas › Desenho do mapa › Ilustração oficial.
 - **v1.8:** nova interface na **direção D, "Diretório"** (escolhida entre 4 direções desenhadas no canvas "Onde fica? — direções de design"):
   lista primeiro, cabeçalho "UFDPar | Onde fica?", abas Lista/Mapa no celular no lugar do painel arrastável, detalhe com caminho de navegação,
   ficha (bloco, andar, salas, distância) e tabela de andares no lugar do corte do prédio.
@@ -105,7 +102,7 @@ Basta digitar o número que está no horário ("405") para saber bloco e andar (
 | Interface (v1.8) | Direção D, "Diretório": lista por bloco como tela principal; no celular, abas **Lista \| Mapa** (tocar num pino abre um cartão no mapa; "Ver detalhes" volta à lista). A busca só abre o detalhe sozinha quando há um único resultado ou é um número de sala; senão mostra a lista. |
 | Fundo do mapa | **Branco**, inclusive no modo escuro. O campus aparece como "ilha" de contorno irregular (alisado). |
 | Abertura | O site abre mostrando o campus inteiro, sem bloco selecionado. `#bloco-XX` só aparece quando alguém escolhe um lugar. |
-| Base do mapa | Desde a v1.9: desenho vetorial próprio (`mapa-campus.svg`), nas mesmas coordenadas da planta. A ilustração oficial "Localize-se!" limpa continua como opção em Camadas (salva no navegador). |
+| Base do mapa | Ilustração oficial "Localize-se!", limpa, com pinos, etiquetas e ícones redesenhados por cima. |
 | Conta do GitHub | Repositório na conta **pessoal** farnathan. A conta da empresa (produtos-ecoadventure) é só colaboradora, para o Claude enviar. |
 | Envio | Direto do Claude para o GitHub. **Não usar mais o `publicar.bat`**, porque a pasta local está desatualizada. |
 | SIGAA | Fora do escopo (inviável obter a lista de turmas). |
@@ -139,8 +136,7 @@ nem a API do OpenStreetMap. O caminho que funciona é o usuário baixar os arqui
 | Arquivo | Papel |
 |---|---|
 | `index.html` | A página inteira: estilos, dados e lógica, sem bibliotecas externas. A fonte fica em `tipografia/` (desde a v1.7, sem Google Fonts). |
-| `mapa-campus.svg` | Base do mapa (padrão desde a v1.9): desenho vetorial do campus, cerca de 60 KB. Gerado por `ferramentas/mapa_vetorial.py`. |
-| `planta-campus.webp` | Base alternativa: ilustração oficial limpa, com transparência fora do campus (3300 × 3420 px, cerca de 340 KB). |
+| `planta-campus.webp` | Base do mapa: ilustração oficial limpa, com transparência fora do campus (3300 × 3420 px, cerca de 320 KB). |
 | `sw.js` | Service worker: guarda a página e a planta para funcionar com sinal fraco. Só cuida de arquivos do próprio site. |
 | `manifest.webmanifest`, `icone.svg`, `icone-180.png` | Instalação na tela inicial do celular. |
 | `previa.jpg` | Imagem de prévia do link (1200 × 630) para WhatsApp e redes sociais. |
@@ -230,7 +226,6 @@ Pasta `ferramentas/` (requer `pip install opencv-python-headless numpy`; `exempl
 | `contorno_osm.py` | Módulo do `limpar_planta.py`: lê os prédios do OpenStreetMap, encaixa cada contorno na borda do desenho e preenche a mancha com a textura de cada lado (lista `CONTORNO`) | (usado pelo `limpar_planta.py`) |
 | `contornos.py` | Recorta o contorno do telhado de 11 prédios pela cor (branco ou telha) | `dados/contornos.json` (constante `OUTLINE`) |
 | `ajustar_contornos.py` | Corrige, depois do `contornos.py`, o Bloco 14, a Biblioteca e a Escola de Aplicação | `dados/contornos.json` |
-| `mapa_vetorial.py` | Redesenha o campus em vetor a partir da ilustração limpa (`dados/planta-limpa.png`) e do `OUTLINE`/`B` do site: telhados pela textura (brancos e de telha), grama, árvores (círculos), asfalto, vias, pista e nomes de ruas | `../mapa-campus.svg` |
 | `georreferencia.py` | Ajusta a planta às coordenadas reais pelos prédios do OpenStreetMap (mínimos quadrados) | `dados/georef.json` (constante `GEO`) |
 
 Os três foram conferidos: reproduzem exatamente a planta e os contornos publicados.
@@ -284,8 +279,7 @@ essa pasta ficou desatualizada. **Não rode o atalho**, porque ele tentaria envi
 - O status do RU não considera feriados nem recesso.
 - O horário do Serviço Médico é de cerca de 2022.
 - Ainda não há dados de banheiros, rampas e elevadores por bloco.
-- Na **ilustração oficial** (opção em Camadas) ainda há mancha nos Blocos 7, 18 e 21 e em três áreas pequenas. O mapa vetorial padrão não tem manchas.
-- O mapa vetorial é derivado da ilustração: herda as proporções dela, não as medidas reais. Telhados de telha cinza ligados por corredores cobertos aparecem como um só bloco.
+- Ainda há mancha dos pinos oficiais apagados nos Blocos 7, 18 e 21, numa área perto do Bloco 23 e em dois ícones da calçada central.
 
 **Do processo**
 - **Gravação no computador do usuário:** a ferramenta do Claude reaproveitou versões antigas quando o mesmo caminho de origem era usado de novo.
@@ -299,7 +293,7 @@ essa pasta ficou desatualizada. **Não rode o atalho**, porque ele tentaria envi
 ## 10. Pendências e próximos passos
 
 **Prioridade alta**
-- [ ] (Baixa, só afeta a ilustração opcional) **Manchas restantes** (Blocos 7, 18 e 21 e três áreas pequenas): retoque manual com carimbo/correção (ex.: Photopea) em `planta-campus.webp`,
+- [ ] **Manchas restantes** (Blocos 7, 18 e 21 e três áreas pequenas): retoque manual com carimbo/correção (ex.: Photopea) em `planta-campus.webp`,
       ou a ilustração sem pinos da UFDPar. O Bloco 7 também melhoraria se fosse desenhado no OpenStreetMap. Se retocar à mão, subir a versão `?v=` no `index.html` e no `sw.js`.
 - [ ] **Criar a conta no GoatCounter** (`onde-fica-ufdpar`). Sem ela, o site não conta nada.
 - [ ] **Placas com QR code por bloco:** PDF para gráfica, com links `#bloco-XX`.
